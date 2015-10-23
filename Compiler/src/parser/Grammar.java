@@ -51,6 +51,7 @@ public class Grammar implements Terminal
 	public final static int G_UDIM = 31;
 	public final static int G_VARIABLES =32;
 	public final static int G_U_PARAM = 33;
+	public final static int G_ASIGNACION = 34;
 	
 	/**
 	 * Constructor.
@@ -133,6 +134,18 @@ public class Grammar implements Terminal
 		nextToken();
 		checkTerminalValue(TERMINAL_DE, PRIORITY_HIGH, G_PROGAMA);
 		
+		nextToken();
+		checkTerminalValue(TERMINAL_PRINCIPAL, PRIORITY_HIGH, G_PROGAMA);
+		
+		nextToken();
+		checkTerminalValue(TERMINAL_SEMICOLON, PRIORITY_HIGH, G_PROGAMA);
+		
+		nextToken();
+		checkTerminalValue(TERMINAL_FIN, PRIORITY_HIGH, G_PROGAMA);
+		
+		nextToken();
+		checkTerminalValue(TERMINAL_DE, PRIORITY_HIGH, G_PROGAMA);
+		
 		nextToken();						
 		checkTerminalTag(Token.IDENTIFIER, PRIORITY_HIGH, G_PROGAMA);
 
@@ -167,7 +180,7 @@ public class Grammar implements Terminal
 	private boolean grammarConstantes()
 	{
 		nextToken();
-		if(grammarTipo())
+		if(grammarTipo(PRIORITY_HIGH))
 		{
 			//Controls the cycle to declare more than one constant of the same type.
 			boolean moreConstants = false;
@@ -204,7 +217,7 @@ public class Grammar implements Terminal
 	
 	private boolean grammarVariables()
 	{
-		if(grammarTipo())
+		if(grammarTipo(PRIORITY_HIGH))
 		{
 			//Controls the cycle to declare more than one variable of the same type.
 			boolean moreVariables = false;
@@ -255,7 +268,7 @@ public class Grammar implements Terminal
 	private boolean grammarTipos()
 	{
 		nextToken();
-		if(grammarTipo())
+		if(grammarTipo(PRIORITY_HIGH))
 		{
 			boolean moreTypes = false;
 			do
@@ -333,7 +346,7 @@ public class Grammar implements Terminal
 	private boolean grammarFuncion()
 	{
 		nextToken();
-		if(grammarTipo())
+		if(grammarTipo(PRIORITY_HIGH))
 		{
 			nextToken();
 			if(!checkTerminalTag(Token.IDENTIFIER, PRIORITY_HIGH, G_FUNCION)) return false;
@@ -348,26 +361,38 @@ public class Grammar implements Terminal
 				{
 					if(!checkTerminalValue(TERMINAL_RIGHT_PAR, PRIORITY_HIGH, G_FUNCION)) 
 						return false;
+					nextToken();
 				}
 				else return false;
 			}
-			if(grammarBlock())
+			if(grammarTipo(PRIORITY_LOW))
 			{
-				nextToken();
-				if(!checkTerminalValue(TERMINAL_FIN, PRIORITY_HIGH, G_FUNCION)) return false;
-				
-				nextToken();
-				if(!checkTerminalValue(TERMINAL_DE, PRIORITY_HIGH, G_FUNCION)) return false;
-				
-				nextToken();
-				if(!checkTerminalTag(Token.IDENTIFIER, PRIORITY_HIGH, G_FUNCION)) return false;
-				
-				nextToken();
-				if(!checkTerminalValue(TERMINAL_SEMICOLON, PRIORITY_HIGH, G_FUNCION)) return false;
-				
-				return true;
+				//Declare variables.
+				boolean stillDeclaring = true;
+				while(stillDeclaring)
+				{
+					if(!grammarVariables()) return false;
+					nextToken();
+					if(grammarTipo(PRIORITY_LOW) || checkTerminalValue(TERMINAL_COMA, PRIORITY_LOW,
+							G_PROCEDIMIENTO))
+						stillDeclaring = true;
+					else stillDeclaring = false;
+				}
 			}
-			else return false;
+			if(!grammarBlock()) return false;
+			
+			if(!checkTerminalValue(TERMINAL_FIN, PRIORITY_HIGH, G_FUNCION)) return false;
+			
+			nextToken();
+			if(!checkTerminalValue(TERMINAL_DE, PRIORITY_HIGH, G_FUNCION)) return false;
+			
+			nextToken();
+			if(!checkTerminalTag(Token.IDENTIFIER, PRIORITY_HIGH, G_FUNCION)) return false;
+			
+			nextToken();
+			if(!checkTerminalValue(TERMINAL_SEMICOLON, PRIORITY_HIGH, G_FUNCION)) return false;
+			
+			return true;
 		}
 		return false;
 	}
@@ -376,7 +401,7 @@ public class Grammar implements Terminal
 	{
 		while(true)
 		{
-			if(grammarTipo())
+			if(grammarTipo(PRIORITY_HIGH))
 			{
 				boolean declaringSameType = false;
 				do
@@ -389,7 +414,7 @@ public class Grammar implements Terminal
 					if(!checkTerminalValue(TERMINAL_COMA, PRIORITY_LOW, G_PARAMS))
 					{
 						nextToken();
-						if(grammarTipo()) declaringSameType = false;
+						if(grammarTipo(PRIORITY_LOW)) declaringSameType = false;
 						else return true;
 					}
 					else declaringSameType = true;
@@ -415,12 +440,26 @@ public class Grammar implements Terminal
 			{
 				if(!checkTerminalValue(TERMINAL_RIGHT_PAR, PRIORITY_HIGH, G_PROCEDIMIENTO)) 
 					return false;
+				nextToken();
 			}
 			else return false;
 		}
+		if(grammarTipo(PRIORITY_LOW))
+		{
+			//Declare variables.
+			boolean stillDeclaring = true;
+			while(stillDeclaring)
+			{
+				if(!grammarVariables()) return false;
+				nextToken();
+				if(grammarTipo(PRIORITY_LOW) || checkTerminalValue(TERMINAL_COMA, PRIORITY_LOW,
+						G_PROCEDIMIENTO))
+					stillDeclaring = true;
+				else stillDeclaring = false;
+			}
+		}
 		if(!grammarBlock()) return false;
-		
-		nextToken();
+
 		if(!checkTerminalValue(TERMINAL_FIN, PRIORITY_HIGH, G_PROCEDIMIENTO)) return false;
 		
 		nextToken();
@@ -437,7 +476,7 @@ public class Grammar implements Terminal
 	
 	private boolean grammarBlock()
 	{
-		nextToken();
+		//nextToken();
 		if(!checkTerminalValue(TERMINAL_INICIO, PRIORITY_HIGH, G_BLOCK)) return false;
 
 		nextToken();
@@ -455,20 +494,10 @@ public class Grammar implements Terminal
 				{
 					nextToken();
 					if(checkTerminalValue(TERMINAL_SEMICOLON, PRIORITY_LOW, G_STATEMENT))
-					{
 						nextToken();
-					}
-					else
-					{
-						pushToken();
-						return;
-					}
+					else return;
 				}
-				else
-				{
-					pushToken();
-					return;
-				}
+				else return;
 			}
 			else nextToken();
 		}
@@ -485,10 +514,30 @@ public class Grammar implements Terminal
 		else if(checkTerminalValue(TERMINAL_REGRESA, PRIORITY_LOW, G_COMMAND)) 
 			return grammarRegresa();
 		else if(checkTerminalValue(TERMINAL_SI, PRIORITY_LOW, G_COMMAND)) return grammarSi();
-		//LFUNCPROC LLamadas a funciones y procedimientos.
-		else if(tag == Token.IDENTIFIER) return true;
+		else if(tag == Token.IDENTIFIER)
+		{
+			nextToken();
+			if(checkTerminalValue(TERMINAL_LEFT_PAR, PRIORITY_LOW, G_COMMAND)) 
+				return grammarLFunc(PRIORITY_HIGH);
+			else
+				return grammarAsignacion();
+		}
 		
 		return false;
+	}
+	
+	private boolean grammarAsignacion()
+	{
+		if(checkTerminalValue(TERMINAL_LEFT_BRAC, PRIORITY_LOW, G_ASIGNACION))
+		{
+			if(!grammarUdim()) return false;
+			nextToken();
+		}
+		
+		if(!checkTerminalValue(TERMINAL_ASIGNATION, PRIORITY_HIGH, G_ASIGNACION)) return false;
+		
+		nextToken();
+		return grammarExpr();
 	}
 	
 	private boolean grammarCiclo()
@@ -500,41 +549,35 @@ public class Grammar implements Terminal
 		if(!checkTerminalValue(TERMINAL_EN, PRIORITY_HIGH, G_CICLO)) return false;
 		
 		nextToken();
-		if(grammarRange())
+		if(!grammarExpr()) return false;
+		
+		nextToken();
+		if(!checkTerminalValue(TERMINAL_HASTA, PRIORITY_HIGH, G_CICLO)) return false;
+		
+		nextToken();
+		if(!grammarExpr()) return false;
+		
+		nextToken();
+		if(!checkTerminalValue(TERMINAL_FIN, PRIORITY_LOW, G_CICLO))
 		{
-			nextToken();
 			if(checkTerminalValue(TERMINAL_PASO, PRIORITY_LOW, G_CICLO))
 			{
 				nextToken();
-				if(!grammarLiteral(PRIORITY_HIGH)) return false;
-				else nextToken();
+				if(!grammarExpr()) return false;
+				nextToken();
 			}
-
-			grammarStatement();
-			nextToken();
-			if(!checkTerminalValue(TERMINAL_FIN, PRIORITY_HIGH, G_CICLO)) return false;
-			
-			nextToken();
-			if(!checkTerminalValue(TERMINAL_DE, PRIORITY_HIGH, G_CICLO)) return false;
-			
-			nextToken();
-			if(!checkTerminalValue(TERMINAL_CICLO, PRIORITY_HIGH, G_CICLO)) return false;
 		}
-		else return false;
-		
-		return true;
-	}
-	
-	private boolean grammarRange()
-	{
-		int[] tags = {Token.CONSTANT_INT, Token.IDENTIFIER};
-		if(!checkTerminalTag(tags, PRIORITY_HIGH, G_RANGE)) return false;
+		grammarStatement();
+		if(!checkTerminalValue(TERMINAL_FIN, PRIORITY_HIGH, G_CICLO)) return false;
 		
 		nextToken();
-		if(!checkTerminalValue(TERMINAL_HASTA, PRIORITY_HIGH, G_RANGE)) return false;
+		if(!checkTerminalValue(TERMINAL_DE, PRIORITY_HIGH, G_CICLO)) return false;
 		
 		nextToken();
-		if(!checkTerminalTag(tags, PRIORITY_HIGH, G_RANGE)) return false;
+		if(!checkTerminalValue(TERMINAL_CICLO, PRIORITY_HIGH, G_CICLO)) return false;
+		
+		nextToken();
+		if(!checkTerminalValue(TERMINAL_SEMICOLON, PRIORITY_HIGH, G_CICLO)) return false;
 		return true;
 	}
 	
@@ -549,7 +592,11 @@ public class Grammar implements Terminal
 		nextToken();
 		if(!checkTerminalValue(TERMINAL_RIGHT_PAR, PRIORITY_LOW, G_LEE))
 		{
-			if(grammarUdim()) return true;
+			if(grammarUdim())
+			{
+				nextToken();
+				return true;
+			}
 			return false;
 		}
 		return true;
@@ -569,11 +616,7 @@ public class Grammar implements Terminal
 			{
 				if(!checkTerminalValue(TERMINAL_COMA, PRIORITY_HIGH, G_UDIM)) return false;
 			}
-			else
-			{
-				nextToken();
-				return true;
-			}
+			else return true;
 		}
 	}
 	
@@ -615,16 +658,9 @@ public class Grammar implements Terminal
 		{
 			nextToken();
 			if(checkTerminalValue(TERMINAL_LEFT_BRAC, PRIORITY_LOW, G_TERMINO))
-			{
-				if(grammarUdim()) return true;
-				return false;
-			}
+				return grammarUdim();
 			else if(checkTerminalValue(TERMINAL_LEFT_PAR, PRIORITY_LOW, G_TERMINO))
-			{
-				pushToken();
-				if(grammarLFunc(PRIORITY_HIGH)) return true;
-				return false;
-			}
+				return grammarLFunc(PRIORITY_HIGH);
 			else
 			{
 				pushToken();
@@ -634,7 +670,9 @@ public class Grammar implements Terminal
 		else if(grammarLiteral(PRIORITY_LOW)) return true;
 		else if(checkTerminalValue(TERMINAL_LEFT_PAR, PRIORITY_HIGH, G_TERMINO))
 		{
+			nextToken();
 			if(!grammarExpr()) return false;
+			nextToken();
 			if(!checkTerminalValue(TERMINAL_RIGHT_PAR, PRIORITY_HIGH, G_TERMINO)) return false;
 			return true;
 		}
@@ -740,12 +778,9 @@ public class Grammar implements Terminal
 	
 	private boolean grammarLFunc(int priority)
 	{
+		if(!checkTerminalValue(TERMINAL_LEFT_PAR, priority, G_L_FUNC)) return false;
+		
 		nextToken();
-		if(!checkTerminalValue(TERMINAL_LEFT_PAR, priority, G_L_FUNC))
-		{
-			//pushToken();
-			return false;
-		}
 		if(!checkTerminalValue(TERMINAL_RIGHT_PAR, PRIORITY_LOW, G_L_FUNC))
 		{
 			if(!grammarUparam()) return false;
@@ -819,13 +854,10 @@ public class Grammar implements Terminal
 				grammarStatement();
 			else
 			{
-				nextToken(); nextToken();
+				nextToken();
 				grammarStatement();
-				//nextToken();
 			}
-			//nextToken();	
 		}
-		nextToken();//Called to clean the stack.
 		if(!checkTerminalValue(TERMINAL_FIN, PRIORITY_HIGH, G_SI)) return false;
 		
 		nextToken();
@@ -840,13 +872,14 @@ public class Grammar implements Terminal
 		return true;
 	}
 	
-	private boolean grammarTipo()
+	private boolean grammarTipo(int priority)
 	{
 		String[] values = {TERMINAL_ENTERO, TERMINAL_DECIMAL, TERMINAL_ALFANUMERICO, 
 				TERMINAL_LOGICO};
+		//Check for this extra tag.
 		int[] tags = {Token.IDENTIFIER};
 		
-		if(!checkTerminalValueTag(values, tags, PRIORITY_HIGH, G_TIPO)) return false;
+		if(!checkTerminalValueTag(values, tags, priority, G_TIPO)) return false;
 		return true;
 	}
 
@@ -1085,6 +1118,7 @@ public class Grammar implements Terminal
 			case G_UDIM: return "udim";
 			case G_VARIABLES: return "variables";
 			case G_U_PARAM: return "Uparam";//Parameters use.
+			case G_ASIGNACION: return "asignacion"; 
 			default: return "ERROR";
 		}
 	}
