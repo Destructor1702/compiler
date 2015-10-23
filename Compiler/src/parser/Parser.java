@@ -44,7 +44,8 @@ public class Parser
 		if(scanner.hasToken())
 		{
 			Token token = scanner.getToken();
-			if(token.getTag() >= 0) return token;
+			if(token.getTag() >= 0) 
+				return token;
 			else return null;
 		}
 		else return null;

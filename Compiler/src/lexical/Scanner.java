@@ -28,25 +28,27 @@ public class Scanner
 	
 	private final static int TRANSITION_MATRIX[][] = 
 		{
-			//		l		d		+		>		<		=		"		:		.		del
-			/*0*/{	1,		12,		8,		2,		4,		6,		15,		10,		17,		17},
-			/*1*/{	1,		1,		ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP},
-			/*2*/{	ACP,	ACP,	ACP,	ACP,	ACP,	3,		ACP,	ACP,	ACP,	ACP},
-			/*3*/{	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP, 	ACP},
-			/*4*/{	ACP,	ACP,	ACP,	9,		ACP,	5,		ACP,	ACP,	ACP,	ACP},
-			/*5*/{	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP, 	ACP},
-			/*6*/{	ACP,	ACP,	ACP,	ACP,	ACP,	7,		ACP,	ACP,	ACP,	ACP},
-			/*7*/{	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP},
-			/*8*/{	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP},
-			/*9*/{	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP},
-			/*10*/{	ERR,	ERR,	ERR,	ERR,	ERR,	11,		ERR,	ERR,	ERR,	ERR},
-			/*11*/{	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP},
-			/*12*/{	ACP,	12,		ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	13,		ACP},
-			/*13*/{	ERR,	14,		ERR,	ERR,	ERR,	ERR,	ERR,	ERR,	ERR,	ERR},
-			/*14*/{	ACP,	14,		ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP},
-			/*15*/{	15,		15,		15,		15,		15,		15,		16,		15,		15,		15},
-			/*16*/{	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP},
-			/*17*/{	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP}
+			//		l		d		+		>		<		=		"		:		.		del		/
+			/*0*/{	1,		12,		8,		2,		4,		6,		15,		10,		17,		17,		18},
+			/*1*/{	1,		1,		ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP},
+			/*2*/{	ACP,	ACP,	ACP,	ACP,	ACP,	3,		ACP,	ACP,	ACP,	ACP,	ACP},
+			/*3*/{	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP, 	ACP,	ACP},
+			/*4*/{	ACP,	ACP,	ACP,	9,		ACP,	5,		ACP,	ACP,	ACP,	ACP,	ACP},
+			/*5*/{	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP, 	ACP,	ACP},
+			/*6*/{	ACP,	ACP,	ACP,	ACP,	ACP,	7,		ACP,	ACP,	ACP,	ACP,	ACP},
+			/*7*/{	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP},
+			/*8*/{	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP},
+			/*9*/{	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP},
+			/*10*/{	ERR,	ERR,	ERR,	ERR,	ERR,	11,		ERR,	ERR,	ERR,	ERR,	ERR},
+			/*11*/{	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP},
+			/*12*/{	ACP,	12,		ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	13,		ACP,	ACP},
+			/*13*/{	ERR,	14,		ERR,	ERR,	ERR,	ERR,	ERR,	ERR,	ERR,	ERR,	ERR},
+			/*14*/{	ACP,	14,		ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP},
+			/*15*/{	15,		15,		15,		15,		15,		15,		16,		15,		15,		15,		15},
+			/*16*/{	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP},
+			/*17*/{	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP},
+			/*18*/{	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	ACP,	19},
+			/*19*/{	19,		19,		19,		19,		19,		19,		19,		19,		19,		19,		19}
 		};
 	
 	/**
@@ -124,8 +126,26 @@ public class Scanner
 			in = getNextChar();
 			while(in == '\n' || in == '\t' || in == ' ')
 			{	
-				if(state != 0 && state != 15)
+				if(state != 0 && state != 15 && state != 19)
 					return new Token(getTokenTag(state), lexeme);
+				else if(state == 19)
+				{
+					//Comment.
+					if(in == '\n')
+					{
+						//return new Token(getTokenTag(state), lexeme);
+						//If comment detected, initialize all the variables involved.
+						lexeme = "";
+						state = 0;
+						result = 0;
+					}
+					else
+					{
+						lexeme += in;
+						in = getNextChar();
+						continue;
+					}
+				}
 				else if(state == 15)
 				{
 					if(in != '\n') break;
@@ -243,6 +263,10 @@ public class Scanner
 				return Token.CONSTANT_STRING;
 			case 17:
 				return Token.DELIMITATOR;
+			case 18:
+				return Token.OPERATOR_ARITHMETIC;
+			case 19:
+				return Token.COMMENT;
 			default:
 				return ERR;
 		}
@@ -267,7 +291,7 @@ public class Scanner
 			return 0;
 		if(in >= DIG_BEG && in <= DIG_END)
 			return 1;
-		if(in == '+' || in == '-' || in == '*' || in == '/' || in == '%' || in == '^')
+		if(in == '+' || in == '-' || in == '*' || in == '%' || in == '^')
 			return 2;
 		if(in == '>')
 			return 3;
@@ -283,6 +307,8 @@ public class Scanner
 			return 8;
 		if(in == '[' ||in == ']' ||in == '(' ||in == ')' ||in == ',' ||in == ';')
 			return 9;
+		if(in == '/')
+			return 10;
 		
 		return ERR;
 	}

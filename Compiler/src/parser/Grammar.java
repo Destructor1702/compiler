@@ -329,11 +329,7 @@ public class Grammar implements Terminal
 				oneDeclared = true;
 				continue;
 			}
-			if(oneDeclared)
-			{
-				//pushToken();
-				return true;
-			}
+			if(oneDeclared) return true;
 			else
 			{
 				String[] expected = {TERMINAL_FUNCION, TERMINAL_PROCEDIMIENTO};
@@ -476,7 +472,6 @@ public class Grammar implements Terminal
 	
 	private boolean grammarBlock()
 	{
-		//nextToken();
 		if(!checkTerminalValue(TERMINAL_INICIO, PRIORITY_HIGH, G_BLOCK)) return false;
 
 		nextToken();

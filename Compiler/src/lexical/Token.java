@@ -21,6 +21,7 @@ public class Token
 	public final static int CONSTANT_LOGICAL = 9;
 	
 	public final static int DELIMITATOR = 10;
+	public final static int COMMENT = 11;
 	
 	private int tag;
 	private String value;
@@ -61,6 +62,7 @@ public class Token
 			case CONSTANT_LOGICAL: return "Logical Constant";
 			case CONSTANT_STRING: return "String Constant";
 			case DELIMITATOR: return "Delimitator";
+			case COMMENT: return "Comment";
 			default: return "Error";
 		}
 	}
