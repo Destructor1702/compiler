@@ -2,40 +2,50 @@ package ui;
 
 import java.awt.BorderLayout;
 import java.awt.Button;
+import java.awt.Color;
 import java.awt.FileDialog;
+import java.awt.FlowLayout;
 import java.awt.Frame;
 import java.awt.Panel;
 import java.awt.TextArea;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.TextEvent;
+import java.awt.event.TextListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 
+import core.Core;
+
 /**
  * @author natafrank
- *
- * Frame the enables the load of the file that is going to be compiled.
- * It also contains a TextArea where the status of the compiling process will be shown.
+ * Frame that will package a working area.
+ * It makes available to load files, compile, edit and also it has a status output.
  */
 public class MainFrame extends Frame implements ActionListener, WindowListener
 {
 	private static final long serialVersionUID = 1L;
 	
 	//Frame variables.
-	private final static int WIDTH = 700;
-	private final static int HEIGHT = 500;
-	private final static int LOCATION = 200;
+	private final static int WIDTH = 1000;
+	private final static int HEIGHT = 600;
+	private final static int LOCATION = 100;
 	
 	//Tags for components.
-	private final static String TAG_CHOOSE = "Choose...";
+	private final static String TAG_LOAD = "Load";
 	private final static String TAG_COMPILE = "Compile";
 	private final static String TAG_EXIT = "Exit";
 	
-	private Button btnChoose;
+	private Button btnLoad;
 	private Button btnCompile;
 	private Button btnExit;
 	private Panel pnlButton;
+	private Panel pnlEditor;
+	private TextArea txtEditor;
+	private TextArea txtLines;
 	private TextArea txtStatus;
+	private String fileName;
+	private int line;
 	
 	/**
 	 * Initializes the frame.
@@ -45,27 +55,51 @@ public class MainFrame extends Frame implements ActionListener, WindowListener
 		//Configuring.
 		super("Compiler");
 		addWindowListener(this);
-		btnChoose = new Button(TAG_CHOOSE);
-		btnChoose.addActionListener(this);
+		btnLoad = new Button(TAG_LOAD);
+		btnLoad.addActionListener(this);
 		btnCompile = new Button(TAG_COMPILE);
 		btnCompile.addActionListener(this);
 		btnCompile.setEnabled(false);
 		btnExit = new Button(TAG_EXIT);
 		btnExit.addActionListener(this);
 		pnlButton = new Panel();
+		pnlEditor = new Panel(new BorderLayout());
 		txtStatus = new TextArea();
+		txtEditor = new TextArea();
+		txtLines = new TextArea("", 1, 3, TextArea.SCROLLBARS_HORIZONTAL_ONLY);
+		txtLines.setEditable(false);
+		line = 1;
+		txtLines.append(line + "\n");
 		txtStatus.setEditable(false);
-		txtStatus.setText("Waiting for file to compile...\n");
 		
 		//Packing.
-		pnlButton.add(btnChoose);
+		pnlButton.add(btnLoad);
 		pnlButton.add(btnCompile);
 		pnlButton.add(btnExit);
 		setLayout(new BorderLayout());
-		add(txtStatus, BorderLayout.CENTER);
-		add(pnlButton, BorderLayout.SOUTH);
+		add(pnlButton, BorderLayout.NORTH);
+		add(txtLines, BorderLayout.WEST);
+		add(txtEditor, BorderLayout.CENTER);
+		add(txtStatus, BorderLayout.SOUTH);
 		setSize(WIDTH, HEIGHT);
 		setResizable(false);
+		
+		//Listener.
+		txtEditor.addTextListener(new TextListener()
+		{
+			
+			@Override
+			public void textValueChanged(TextEvent e)
+			{
+				String text = txtEditor.getText();
+				int nextLineChars = text.length() - text.replace("\n", "").length();
+				txtLines.setText("");
+				for(int i = 1; i <= nextLineChars + 1; i++)
+				{
+					txtLines.append(i + "\n");
+				}
+			}
+		});
 	}
 	
 	@Override
@@ -73,16 +107,24 @@ public class MainFrame extends Frame implements ActionListener, WindowListener
 	{
 		String action = e.getActionCommand();
 		
-		if(action.equals(TAG_CHOOSE))
+		if(action.equals(TAG_LOAD))
 		{
 			FileDialog fileDialog = new FileDialog(this);
 			fileDialog.setVisible(true);
+			fileName = fileDialog.getFile();
+			if(fileName != null)
+			{
+				btnCompile.setEnabled(true);
+				txtStatus.append("Selected file: " + fileName + "\n\n");
+			}
 		}
-		else if(action.equals(TAG_COMPILE))
+		if(action.equals(TAG_COMPILE))
 		{
-			txtStatus.append("Compile.\n");
+			txtStatus.append("Compiling...\n\n");
+			Core core = new Core(txtStatus, fileName);
+			core.compile();
 		}
-		else if(action.equals(TAG_EXIT))
+		if(action.equals(TAG_EXIT))
 		{
 			System.exit(0);
 		}

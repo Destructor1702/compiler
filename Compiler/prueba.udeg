@@ -1,0 +1,51 @@
+usando libreria Texto_ES;
+
+programa Hola
+	constante entero H := 5, J := 3.878;
+	entero x, j;
+	tipo decimal x arreglo(2 hasta 300);
+	constante decimal d := 3.4;
+	decimal kol := 3, h;
+	tipo entero Arre arreglo (1 hasta 2);
+	constante alfanumerico FOJO := "hsjdfhdas";
+	
+	inicio
+		declara
+		funcion entero prueba(entero p1, p2, p3)
+		inicio
+			lee(x[2]);
+			lee(i);
+			despliega("Hola Mundo");
+			ciclo i en 1 hasta 5 paso 5
+				lee(i);
+			fin de ciclo;
+			ciclo j en 1 hasta l paso 2
+				lee(i);
+			fin de ciclo;
+			si( x <  2 )
+				regresa 1;
+			fin de si;
+		fin de prueba;
+		
+		procedimiento proc(entero f)
+		inicio
+			despliega("Hola" + " Mundo");
+		fin de proc;
+		
+		funcion decimal otra()
+		inicio
+			lee(otroParametro);
+			si( otroParametro <= 7)
+				regresa 2;
+			sino
+				regresa 3;
+			fin de si;
+		fin de otra;
+		
+principal 
+fin de Hola.
+
+
+
+
+			 	 	 	
