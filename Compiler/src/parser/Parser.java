@@ -1,9 +1,8 @@
 package parser;
 
-import java.util.ArrayList;
-
 import lexical.Scanner;
 import lexical.Token;
+import core.Core;
 
 /**
  * This class is in charge of administrate the parsing process.
@@ -22,17 +21,17 @@ public class Parser
 	/**
 	 * Holds the errors found in the parsing process.
 	 */
-	private ArrayList<String> errors;
 	private Scanner scanner;
+	private Core core;
 		
 	/**
 	 * Default constructor.
 	 * @param scanner Scanner to get the tokens.
 	 */
-	public Parser(Scanner scanner)
+	public Parser(Core core, Scanner scanner)
 	{
 		this.scanner = scanner;
-		errors = new ArrayList<String>();
+		this.core = core;
 	}
 	
 	/**
@@ -70,16 +69,7 @@ public class Parser
 	 */
 	public void addError(String error)
 	{
-		errors.add(error);
-	}
-	
-	/**
-	 * Get the errors array.
-	 * @return errors.
-	 */
-	public ArrayList<String> getErrors()
-	{
-		return errors;
+		core.addError(error);
 	}
 	
 	/**

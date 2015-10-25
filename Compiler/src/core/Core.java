@@ -16,6 +16,7 @@ public class Core
 {
 	private String fileName;
 	private TextArea txtStatus;
+	private ArrayList<String> errors;
 	
 	/**
 	 * Constructor for terminal execution.
@@ -25,6 +26,7 @@ public class Core
 	{
 		this.fileName = fileName;
 		txtStatus = null;
+		errors = new ArrayList<String>();
 	}
 	
 	/**
@@ -46,7 +48,7 @@ public class Core
 		Scanner scanner = new Scanner(fileName);
 		if(scanner.getStatus() == Scanner.STATUS_GOOD)
 		{
-			Parser parser = new Parser(scanner);
+			Parser parser = new Parser(this, scanner);
 			int parsingResult = parser.startParsing();
 			switch(parsingResult)
 			{
@@ -54,7 +56,6 @@ public class Core
 					print("Parsing OK.");
 					break;
 				case Parser.RESULT_ERROR:
-					ArrayList<String> errors = parser.getErrors();
 					int errorsLength = errors.size();
 					for(int i = 0; i < errorsLength; i++)
 					{
@@ -69,10 +70,20 @@ public class Core
 	}
 	
 	/**
+	 * Adds  new error to the map.
+	 * @param line Line of code where the error was found.
+	 * @param error 
+	 */
+	public void addError(String error)
+	{
+		errors.add(error);
+	}
+	
+	/**
 	 * Prints on the executing main.
 	 * @param message
 	 */
-	private void print(String message)
+	public void print(String message)
 	{
 		if(txtStatus != null)
 		{
