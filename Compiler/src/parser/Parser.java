@@ -1,5 +1,6 @@
 package parser;
 
+import symtable.SymbolTableElement;
 import lexical.Scanner;
 import lexical.Token;
 import core.Core;
@@ -69,7 +70,7 @@ public class Parser
 	 */
 	public void addError(String error)
 	{
-		core.addError(error);
+		core.addParsingError(error);
 	}
 	
 	/**
@@ -97,5 +98,10 @@ public class Parser
 	public boolean hasToken()
 	{
 		return scanner.hasToken();
+	}
+	
+	public boolean addElementToSymbolTable(SymbolTableElement e)
+	{
+		return core.addElementToSymbolTable(e);
 	}
 }

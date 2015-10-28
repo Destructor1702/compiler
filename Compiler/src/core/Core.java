@@ -5,6 +5,8 @@ import java.util.ArrayList;
 
 import lexical.Scanner;
 import parser.Parser;
+import symtable.SymbolTableElement;
+import symtable.SymbolTableManager;
 import error.Error;
 
 /**
@@ -16,7 +18,9 @@ public class Core
 {
 	private String fileName;
 	private TextArea txtStatus;
-	private ArrayList<String> errors;
+	private ArrayList<String> parsingErrors;
+	private ArrayList<String> semanticErrors;
+	private SymbolTableManager symTable;
 	
 	/**
 	 * Constructor for terminal execution.
@@ -26,7 +30,9 @@ public class Core
 	{
 		this.fileName = fileName;
 		txtStatus = null;
-		errors = new ArrayList<String>();
+		parsingErrors = new ArrayList<String>();
+		semanticErrors = new ArrayList<String>();
+		symTable = new SymbolTableManager(this);
 	}
 	
 	/**
@@ -50,33 +56,59 @@ public class Core
 		{
 			Parser parser = new Parser(this, scanner);
 			int parsingResult = parser.startParsing();
+			print("/************** PARSER ****************/");
 			switch(parsingResult)
 			{
 				case Parser.RESULT_OK:
 					print("Parsing OK.");
 					break;
 				case Parser.RESULT_ERROR:
-					int errorsLength = errors.size();
+					int errorsLength = parsingErrors.size();
 					for(int i = 0; i < errorsLength; i++)
 					{
-						print(errors.get(i));
+						print(parsingErrors.get(i));
 					}
 					break;
 				default:
 					print("Unexpected Result.");
 			}
+			print("/************** SEMANTIC ****************/");
+			if(symTable.hasError())
+				for(int i = 0; i < semanticErrors.size(); i++)
+					print(semanticErrors.get(i));
+			else
+				print("Semantic OK.");
+			print(symTable.getPrintableTable());
 		}
 		else print(Error.LEXICAL_CREATION);
 	}
 	
 	/**
-	 * Adds  new error to the map.
-	 * @param line Line of code where the error was found.
+	 * Adds a new element to the symbol table.
+	 * @param e new element.
+	 * @return true if success, false if not.
+	 */
+	public boolean addElementToSymbolTable(SymbolTableElement e)
+	{
+		return symTable.addElement(e);
+	}
+	
+	/**
+	 * Adds  new parsing error.
 	 * @param error 
 	 */
-	public void addError(String error)
+	public void addParsingError(String error)
 	{
-		errors.add(error);
+		parsingErrors.add(error);
+	}
+	
+	/**
+	 * Adds  new semantic error.
+	 * @param error 
+	 */
+	public void addSemanticError(String error)
+	{
+		semanticErrors.add(error);
 	}
 	
 	/**
@@ -87,13 +119,11 @@ public class Core
 	{
 		if(txtStatus != null)
 		{
-			txtStatus.append("--------------------------------------------------------------\n" +
-					message + "\n");
+			txtStatus.append("\n\n\n" + message);
 		}
 		else
 		{
-			System.out.print("--------------------------------------------------------------\n" +
-					message + "\n");
+			System.out.print("\n\n\n" + message);
 		}
 	}
 }

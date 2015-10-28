@@ -1,51 +1,91 @@
-usando libreria Texto_ES;
+// Trying comments
+usando libreria Texto_ES, Otra;
+programa TeTruena
+	constante decimal PI := 3.141592;
+	constante entero MAX := 30;
 
-programa Hola
-	constante entero H := 5, J := 3.878;
-	entero x, j;
-	tipo decimal x arreglo(2 hasta 300);
-	constante decimal d := 3.4;
-	decimal kol := 3, h;
-	tipo entero Arre arreglo (1 hasta 2);
-	constante alfanumerico FOJO := "hsjdfhdas";
-	
+	tipo entero Arre arreglo(1 hasta MAX);
+
+	entero i, n;
+	Arre vector;
+	decimal r, s;
+	alfanumerico alfa, beta;
+
 	inicio
 		declara
-		funcion entero prueba(entero p1, p2, p3)
+		// Factorial recursivo
+		funcion entero FacRec( entero n )
 		inicio
-			lee(x[2]);
-			lee(i);
-			despliega("Hola Mundo");
-			ciclo i en 1 hasta 5 paso 5
-				lee(i);
-			fin de ciclo;
-			ciclo j en 1 hasta l paso 2
-				lee(i);
-			fin de ciclo;
-			si( x <  2 )
+			si ( n < 2 )
 				regresa 1;
-			fin de si;
-		fin de prueba;
-		
-		procedimiento proc(entero f)
-		inicio
-			despliega("Hola" + " Mundo");
-		fin de proc;
-		
-		funcion decimal otra()
-		inicio
-			lee(otroParametro);
-			si( otroParametro <= 7)
-				regresa 2;
 			sino
-				regresa 3;
+				regresa n * FacRec( n - 1);
 			fin de si;
-		fin de otra;
-		
-principal 
-fin de Hola.
+		fin de FacRec;
 
 
+		funcion alfanumerico Concat(alfanumerico a, b)
+		inicio
+			regresa a + " " + b;
+		fin de Concat;
 
 
-			 	 	 	
+		procedimiento LeeVec(entero k)
+		inicio
+			ciclo i en 1 hasta k paso 1
+				despliega("Vector[" + i + "]: ");
+				lee ( vector[ i ]);
+			fin de ciclo;
+		fin de LeeVec;
+
+		procedimiento Burbuja(entero k)
+			entero tmp;
+		inicio
+			ciclo i en 1 hasta ( k - 1 )
+				ciclo j en (i + 1 ) hasta k
+					si (vector[i] > vector[j])
+						tmp := vector[ i ];
+						vector[i] := vector[j];
+						vector[j] := tmp;
+					fin de si;
+				fin de ciclo;
+			fin de ciclo;
+		fin de Burbuja;
+
+		procedimiento ImpVec(entero k)
+		inicio
+			ciclo i en 1 hasta k
+				despliega("Vector[" + i + "]= " + vector[i] + "\n");
+			fin de ciclo;
+		fin de ImpVec;
+
+
+		funcion logico Compara( decimal a, b)
+		inicio
+			regresa a > b;
+		fin de Compara;
+
+		principal
+		inicio
+			despliega("Factorial de: ");
+			lee( n );
+			despliega("Factorial(" + n + ")=" + FacRec(n) +"\n" );
+			despliega("Dame radio de cilindro: ");
+			lee( r );
+			despliega("Dame altura de cilindro: ");
+			lee( s );
+			despliega("Es el radio= " +  r + " > " + s + "? "
+						+ Compara(r, s)+ "\n");
+			despliega("Elementos del arreglo: ");
+			lee( n );
+			LeeVec( n );
+			Burbuja( n );
+			despliega("\n*** Arreglo Ordenado ***\n");
+			ImpVec( n );
+			despliega ("Dame tu nombre: ");
+			lee( alfa );
+			despliega ("Dame tu Apellido: ");
+			lee (beta);
+			despliega("Hola " + Concat(alfa, beta) + " ya pasaste!!!\n");
+		fin de principal;
+	fin de TeTruena.

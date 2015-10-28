@@ -2,8 +2,16 @@ package error;
 
 public class Error
 {
+	////////////////////////////// *********** LEXICAL ***********///////////////////////////////
+	
 	public final static String LEXICAL_CREATION = "/* LEXICAL ERROR */\nLexical analyzer couldn't "
 			+ "be instantiated.";
+	
+	//////////////////////////////////////////////////////////////////////////////////////////////
+	
+	
+	
+	///////////////////////////// ************ SYNTACTIC *********////////////////////////////////\
 	
 	public final static String createParsingError(int lineOfCode, String value, String expected,
 			String grammar)
@@ -36,4 +44,18 @@ public class Error
 	{
 		return "Syntax error in line: "  + lineOfCode + "\n" + "No Token found.\n\n";
 	}
+	///////////////////////////////////////////////////////////////////////////////////////////////
+	
+	
+	
+	///////////////////////////// ************ SEMANTIC *********////////////////////////////////
+	
+	public final static String semanticEntryAlreadyDefined(int lineOdCode, String value)
+	{
+		return "Semantic error in line: " + lineOdCode + "\n< " + value + " > has been defined"
+				+ " before.";
+	}
+	
+	/////////////////////////////////////////////////////////////////////////////////////////////
+
 }

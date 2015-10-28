@@ -64,8 +64,9 @@ programa TeTruena
 		inicio
 			regresa a > b;
 		fin de Compara;
-
+		
 		principal
+		inicio
 			despliega("Factorial de: ");
 			lee( n );
 			despliega("Factorial(" + n + ")=" + FacRec(n) +"\n" );

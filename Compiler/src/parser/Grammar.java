@@ -1,7 +1,10 @@
 package parser;
 
+import java.util.ArrayList;
+
 import lexical.Terminal;
 import lexical.Token;
+import symtable.SymbolTableElement;
 import error.Error;
 
 public class Grammar implements Terminal
@@ -14,6 +17,17 @@ public class Grammar implements Terminal
 	private Token token;
 	private String value;
 	private int tag;
+	
+	/**
+	 * Variables for the element that will be inserted into the symbol table.
+	 */
+	private String eName;
+	private int eClass;
+	private int eType;
+	private boolean eDimensioned;
+	private ArrayList<Integer> eDim;
+	private String eValue;
+	private int eLine;
 	
 	/**
 	 * Index for grammars.
@@ -84,6 +98,7 @@ public class Grammar implements Terminal
 		
 		nextToken();
 		checkTerminalTag(Token.IDENTIFIER, PRIORITY_HIGH, G_PROGAMA);
+		setDataForElement(value, SymbolTableElement.CLASS_PROGRAMA);
 		
 		nextToken();
 		if(!checkTerminalValue(TERMINAL_PRINCIPAL, PRIORITY_LOW, G_PROGAMA))
@@ -169,10 +184,31 @@ public class Grammar implements Terminal
 		
 		nextToken();
 		if(!checkTerminalTag(Token.IDENTIFIER, PRIORITY_HIGH, G_LIBRARIES)) return false;
+		setDataForElement(value, SymbolTableElement.CLASS_LIBRERIA);
 		
 		nextToken();
-		if(!checkTerminalValue(TERMINAL_SEMICOLON, PRIORITY_HIGH, G_LIBRARIES)) return false;
+		if(!checkTerminalValue(TERMINAL_SEMICOLON, PRIORITY_LOW, G_LIBRARIES))
+		{
+			boolean declaring = true;
+			while(declaring)
+			{
+				if(checkTerminalValue(TERMINAL_COMA, PRIORITY_LOW, G_LIBRARIES))
+				{
+					nextToken();
+					if(!checkTerminalTag(Token.IDENTIFIER, PRIORITY_HIGH, G_LIBRARIES)) 
+						return false;
+					setDataForElement(value, SymbolTableElement.CLASS_LIBRERIA);
+					
+					nextToken();
+					if(!checkTerminalValue(TERMINAL_SEMICOLON, PRIORITY_LOW, G_LIBRARIES))
+						declaring = true;
+					else declaring = false;
+				}
+				else declaring = false;
+			}
+		}
 		
+		if(!checkTerminalValue(TERMINAL_SEMICOLON, PRIORITY_HIGH, G_LIBRARIES)) return false;
 		nextToken();
 		return true;
 	}
@@ -425,6 +461,7 @@ public class Grammar implements Terminal
 	{
 		nextToken();
 		if(!checkTerminalTag(Token.IDENTIFIER, PRIORITY_HIGH, G_PROCEDIMIENTO)) return false;
+		setDataForElement(value, SymbolTableElement.CLASS_PROCEDIMIENTO);
 		
 		nextToken();
 		if(!checkTerminalValue(TERMINAL_LEFT_PAR, PRIORITY_HIGH, G_PROCEDIMIENTO)) return false;
@@ -1069,6 +1106,44 @@ public class Grammar implements Terminal
 				return false;
 			default: return false;
 		}
+	}
+	
+	/**
+	 * Prepare the element to be inserted into the symbol table.
+	 * @param eName
+	 * @param eClass
+	 */
+	private void setDataForElement(String eName, int eClass)
+	{
+		switch(eClass)
+		{
+			case SymbolTableElement.CLASS_LIBRERIA:
+			case SymbolTableElement.CLASS_PROGRAMA:
+			case SymbolTableElement.CLASS_PROCEDIMIENTO:
+				this.eName = eName;
+				this.eClass = eClass;
+				eLine = parser.getLineOfCode();
+				eType = SymbolTableElement.D_TYPE_NONE;
+				eDimensioned = false;
+				eDim = new ArrayList<Integer>();
+				eValue = "";
+				addElementToSymbolTable();
+				break;
+				
+				default:
+					parser.addError("Symbol Table Error.\nNo element class defined for "
+							+ "this symbol.");
+		}
+	}
+	
+	/**
+	 * Adds a new element to the symbol table with the stored information inside the
+	 * element's buffers.
+	 */
+	private void addElementToSymbolTable()
+	{
+		parser.addElementToSymbolTable(new SymbolTableElement(eName, eClass, eType, 
+				eDimensioned, eDim, eValue, eLine));
 	}
 	
 	/**
