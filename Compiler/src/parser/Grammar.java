@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import lexical.Terminal;
 import lexical.Token;
+import symtable.DataType;
 import symtable.SymbolTableElement;
 import error.Error;
 
@@ -28,6 +29,12 @@ public class Grammar implements Terminal
 	private ArrayList<Integer> eDim;
 	private String eValue;
 	private int eLine;
+	
+	/**
+	 * Buffers used by the semantic analyzer to manage the parameters in functions and procedures.
+	 */
+	private boolean hasParameters;
+	private ArrayList<String> parameters;
 	
 	/**
 	 * Index for grammars.
@@ -75,6 +82,9 @@ public class Grammar implements Terminal
 	{
 		this.parser = parser;
 		errorFound = false;
+		eDim = new ArrayList<Integer>();
+		hasParameters = false;
+		parameters = new ArrayList<String>();
 	}
 	
 	/**
@@ -98,7 +108,7 @@ public class Grammar implements Terminal
 		
 		nextToken();
 		checkTerminalTag(Token.IDENTIFIER, PRIORITY_HIGH, G_PROGAMA);
-		setDataForElement(value, SymbolTableElement.CLASS_PROGRAMA);
+		prepareElement(value, SymbolTableElement.CLASS_PROGRAMA);
 		
 		nextToken();
 		if(!checkTerminalValue(TERMINAL_PRINCIPAL, PRIORITY_LOW, G_PROGAMA))
@@ -184,7 +194,7 @@ public class Grammar implements Terminal
 		
 		nextToken();
 		if(!checkTerminalTag(Token.IDENTIFIER, PRIORITY_HIGH, G_LIBRARIES)) return false;
-		setDataForElement(value, SymbolTableElement.CLASS_LIBRERIA);
+		prepareElement(value, SymbolTableElement.CLASS_LIBRERIA);
 		
 		nextToken();
 		if(!checkTerminalValue(TERMINAL_SEMICOLON, PRIORITY_LOW, G_LIBRARIES))
@@ -197,7 +207,7 @@ public class Grammar implements Terminal
 					nextToken();
 					if(!checkTerminalTag(Token.IDENTIFIER, PRIORITY_HIGH, G_LIBRARIES)) 
 						return false;
-					setDataForElement(value, SymbolTableElement.CLASS_LIBRERIA);
+					prepareElement(value, SymbolTableElement.CLASS_LIBRERIA);
 					
 					nextToken();
 					if(!checkTerminalValue(TERMINAL_SEMICOLON, PRIORITY_LOW, G_LIBRARIES))
@@ -377,6 +387,7 @@ public class Grammar implements Terminal
 	
 	private boolean grammarFuncion()
 	{
+		clearParameters();
 		nextToken();
 		if(grammarTipo(PRIORITY_HIGH))
 		{
@@ -431,22 +442,24 @@ public class Grammar implements Terminal
 	
 	private boolean grammarParams()
 	{
+		DataType type = new DataType();
 		while(true)
 		{
-			if(grammarTipo(PRIORITY_HIGH))
+			if(grammarTipo(PRIORITY_HIGH, type))
 			{
 				boolean declaringSameType = false;
 				do
 				{
 					nextToken();
 					if(!checkTerminalTag(Token.IDENTIFIER, PRIORITY_HIGH, G_PARAMS)) return false;
+					parameters.add(type.getDataType());
 					
 					nextToken();
 					if(checkTerminalValue(TERMINAL_RIGHT_PAR, PRIORITY_LOW, G_PARAMS)) return true;
 					if(!checkTerminalValue(TERMINAL_COMA, PRIORITY_LOW, G_PARAMS))
 					{
 						nextToken();
-						if(grammarTipo(PRIORITY_LOW)) declaringSameType = false;
+						if(grammarTipo(PRIORITY_LOW, type)) declaringSameType = false;
 						else return true;
 					}
 					else declaringSameType = true;
@@ -459,9 +472,10 @@ public class Grammar implements Terminal
 	
 	private boolean grammarProcedimiento()
 	{
+		clearParameters();
 		nextToken();
 		if(!checkTerminalTag(Token.IDENTIFIER, PRIORITY_HIGH, G_PROCEDIMIENTO)) return false;
-		setDataForElement(value, SymbolTableElement.CLASS_PROCEDIMIENTO);
+		String id = value;
 		
 		nextToken();
 		if(!checkTerminalValue(TERMINAL_LEFT_PAR, PRIORITY_HIGH, G_PROCEDIMIENTO)) return false;
@@ -471,12 +485,14 @@ public class Grammar implements Terminal
 		{
 			if(grammarParams())
 			{
+				hasParameters = true;
 				if(!checkTerminalValue(TERMINAL_RIGHT_PAR, PRIORITY_HIGH, G_PROCEDIMIENTO)) 
 					return false;
 				nextToken();
 			}
 			else return false;
 		}
+		prepareElement(id, SymbolTableElement.CLASS_PROCEDIMIENTO);
 		if(grammarTipo(PRIORITY_LOW))
 		{
 			//Declare variables.
@@ -914,6 +930,22 @@ public class Grammar implements Terminal
 		if(!checkTerminalValueTag(values, tags, priority, G_TIPO)) return false;
 		return true;
 	}
+	
+	private boolean grammarTipo(int priority, DataType type)
+	{
+		String[] values = {TERMINAL_ENTERO, TERMINAL_DECIMAL, TERMINAL_ALFANUMERICO, 
+				TERMINAL_LOGICO};
+		//Check for this extra tag.
+		int[] tags = {Token.IDENTIFIER};
+		if(!checkTerminalValueTag(values, tags, priority, G_TIPO)) return false;
+		
+		//Add the corresponding data type to the parameter.
+		if(value.equals(TERMINAL_ENTERO)) type.setDataType(DataType.ENTERO);
+		else if(value.equals(TERMINAL_DECIMAL)) type.setDataType(DataType.DECIMAL);
+		else if(value.equals(TERMINAL_ALFANUMERICO)) type.setDataType(DataType.ALFANUMERICO);
+		else if(value.equals(TERMINAL_LOGICO)) type.setDataType(DataType.LOGICO);
+		return true;
+	}
 
 	private boolean grammarLiteral(int priority)
 	{
@@ -1113,13 +1145,12 @@ public class Grammar implements Terminal
 	 * @param eName
 	 * @param eClass
 	 */
-	private void setDataForElement(String eName, int eClass)
+	private void prepareElement(String eName, int eClass)
 	{
 		switch(eClass)
 		{
 			case SymbolTableElement.CLASS_LIBRERIA:
 			case SymbolTableElement.CLASS_PROGRAMA:
-			case SymbolTableElement.CLASS_PROCEDIMIENTO:
 				this.eName = eName;
 				this.eClass = eClass;
 				eLine = parser.getLineOfCode();
@@ -1130,6 +1161,25 @@ public class Grammar implements Terminal
 				addElementToSymbolTable();
 				break;
 				
+			case SymbolTableElement.CLASS_PROCEDIMIENTO:
+				this.eClass = eClass;
+				eLine = parser.getLineOfCode();
+				eType = SymbolTableElement.D_TYPE_NONE;
+				eDimensioned = false;
+				eDim = new ArrayList<Integer>();
+				eValue = "";
+				this.eName = eName;
+				if(hasParameters)
+				{
+					int paramSize = parameters.size();
+					for(int i = 0; i < paramSize; i++)
+					{
+						this.eName += "$" + parameters.get(i);
+					}
+				}
+				
+				addElementToSymbolTable();
+				break;
 				default:
 					parser.addError("Symbol Table Error.\nNo element class defined for "
 							+ "this symbol.");
@@ -1191,5 +1241,14 @@ public class Grammar implements Terminal
 			case G_ASIGNACION: return "asignacion"; 
 			default: return "ERROR";
 		}
+	}
+	
+	/**
+	 * Clear the parameters buffers.
+	 */
+	private void clearParameters()
+	{
+		hasParameters = false;
+		parameters.clear();
 	}
 }
