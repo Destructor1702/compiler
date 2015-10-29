@@ -58,6 +58,20 @@ public class SymbolTableManager
 	}
 	
 	/**
+	 * Method triggered when is needed to check if an element is registered in the symbol table
+	 * so it can be used.
+	 * @param element
+	 * @return true if registered, if not, returns false.
+	 */
+	public boolean verifyCall(SymbolTableElement element)
+	{
+		if(symbolTable.containsKey(element.getName())) return true;
+		core.addSemanticError(Error.semanticElementNotDefined(element.getLine(), 
+				element.getName()));
+		return false;
+	}
+	
+	/**
 	 * Gets the String of the symbol table.
 	 * @return String symbol table.
 	 */

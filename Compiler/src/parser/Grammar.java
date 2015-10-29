@@ -108,7 +108,10 @@ public class Grammar implements Terminal
 		
 		nextToken();
 		checkTerminalTag(Token.IDENTIFIER, PRIORITY_HIGH, G_PROGAMA);
-		prepareElement(value, SymbolTableElement.CLASS_PROGRAMA);
+		eName = value;
+		eClass = SymbolTableElement.CLASS_PROGRAMA;
+		eLine = parser.getLineOfCode();
+		prepareElement();
 		
 		nextToken();
 		if(!checkTerminalValue(TERMINAL_PRINCIPAL, PRIORITY_LOW, G_PROGAMA))
@@ -194,7 +197,10 @@ public class Grammar implements Terminal
 		
 		nextToken();
 		if(!checkTerminalTag(Token.IDENTIFIER, PRIORITY_HIGH, G_LIBRARIES)) return false;
-		prepareElement(value, SymbolTableElement.CLASS_LIBRERIA);
+		eName = value;
+		eClass = SymbolTableElement.CLASS_LIBRERIA;
+		eLine = parser.getLineOfCode();
+		prepareElement();
 		
 		nextToken();
 		if(!checkTerminalValue(TERMINAL_SEMICOLON, PRIORITY_LOW, G_LIBRARIES))
@@ -207,7 +213,8 @@ public class Grammar implements Terminal
 					nextToken();
 					if(!checkTerminalTag(Token.IDENTIFIER, PRIORITY_HIGH, G_LIBRARIES)) 
 						return false;
-					prepareElement(value, SymbolTableElement.CLASS_LIBRERIA);
+					eName = value;
+					prepareElement();
 					
 					nextToken();
 					if(!checkTerminalValue(TERMINAL_SEMICOLON, PRIORITY_LOW, G_LIBRARIES))
@@ -475,7 +482,9 @@ public class Grammar implements Terminal
 		clearParameters();
 		nextToken();
 		if(!checkTerminalTag(Token.IDENTIFIER, PRIORITY_HIGH, G_PROCEDIMIENTO)) return false;
-		String id = value;
+		eClass = SymbolTableElement.CLASS_PROCEDIMIENTO;
+		eName = value;
+		eLine = parser.getLineOfCode();
 		
 		nextToken();
 		if(!checkTerminalValue(TERMINAL_LEFT_PAR, PRIORITY_HIGH, G_PROCEDIMIENTO)) return false;
@@ -492,7 +501,7 @@ public class Grammar implements Terminal
 			}
 			else return false;
 		}
-		prepareElement(id, SymbolTableElement.CLASS_PROCEDIMIENTO);
+		prepareElement();
 		if(grammarTipo(PRIORITY_LOW))
 		{
 			//Declare variables.
@@ -1145,15 +1154,12 @@ public class Grammar implements Terminal
 	 * @param eName
 	 * @param eClass
 	 */
-	private void prepareElement(String eName, int eClass)
+	private void prepareElement()
 	{
 		switch(eClass)
 		{
 			case SymbolTableElement.CLASS_LIBRERIA:
 			case SymbolTableElement.CLASS_PROGRAMA:
-				this.eName = eName;
-				this.eClass = eClass;
-				eLine = parser.getLineOfCode();
 				eType = SymbolTableElement.D_TYPE_NONE;
 				eDimensioned = false;
 				eDim = new ArrayList<Integer>();
@@ -1162,13 +1168,10 @@ public class Grammar implements Terminal
 				break;
 				
 			case SymbolTableElement.CLASS_PROCEDIMIENTO:
-				this.eClass = eClass;
-				eLine = parser.getLineOfCode();
 				eType = SymbolTableElement.D_TYPE_NONE;
 				eDimensioned = false;
 				eDim = new ArrayList<Integer>();
 				eValue = "";
-				this.eName = eName;
 				if(hasParameters)
 				{
 					int paramSize = parameters.size();
@@ -1177,9 +1180,9 @@ public class Grammar implements Terminal
 						this.eName += "$" + parameters.get(i);
 					}
 				}
-				
 				addElementToSymbolTable();
 				break;
+				
 				default:
 					parser.addError("Symbol Table Error.\nNo element class defined for "
 							+ "this symbol.");

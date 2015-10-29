@@ -50,10 +50,16 @@ public class Error
 	
 	///////////////////////////// ************ SEMANTIC *********////////////////////////////////
 	
-	public final static String semanticEntryAlreadyDefined(int lineOdCode, String value)
+	public final static String semanticEntryAlreadyDefined(int lineOfCode, String value)
 	{
-		return "Semantic error in line: " + lineOdCode + "\n< " + value + " > has been defined"
+		return "Semantic error in line: " + lineOfCode + "\n< " + value + " > has been defined"
 				+ " before.";
+	}
+	
+	public final static String semanticElementNotDefined(int lineOfCode, String value)
+	{
+		return "Semantic error in line: " + lineOfCode + "\nThe element < " + value + " > hasn't"
+				+ " been defined yet.";
 	}
 	
 	/////////////////////////////////////////////////////////////////////////////////////////////
