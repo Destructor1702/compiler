@@ -88,8 +88,7 @@ public class SymbolTableManager
 		{
 			buffer += "\n| " + e.getName() + "	| " + SymbolTableElement.getClassNameByIndex
 					(e.getElementClass()) + "	|	"
-					+ SymbolTableElement.getTypeNameByIndex(e.getType()) + "	|	"
-					+ e.isDimensioned() + "	|	"; 
+					+ e.getType() + "	|	" + e.isDimensioned() + "	|	"; 
 			ArrayList<Integer> dim = e.getDim();
 			if(!dim.isEmpty())
 			{

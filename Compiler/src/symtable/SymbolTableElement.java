@@ -30,15 +30,9 @@ public class SymbolTableElement
 	/**
 	 * Data Types.
 	 */
-	public final static int D_TYPE_NONE = 0;
-	public final static int D_TYPE_ENTERO = 1;
-	public final static int D_TYPE_DECIMAL = 2;
-	public final static int D_TYPE_LOGICO = 3;
-	public final static int D_TYPE_ALF_NUM = 4;
-	
 	private String name;
 	private int elementClass;
-	private int type;
+	private String type;
 	private	boolean dimensioned;
 	private ArrayList<Integer> dim;
 	private String value;
@@ -52,7 +46,7 @@ public class SymbolTableElement
 	 * @param isDimensioned
 	 * @param value
 	 */
-	public SymbolTableElement(String name, int elementClass, int type, boolean dimensioned, 
+	public SymbolTableElement(String name, int elementClass, String type, boolean dimensioned, 
 			ArrayList<Integer> dim, String value, int line)
 	{
 		this.name = name;
@@ -69,7 +63,7 @@ public class SymbolTableElement
 	 */
 	public String getName(){return name;}
 	public int getElementClass(){return elementClass;}
-	public int getType(){return type;}
+	public String getType(){return type;}
 	public boolean isDimensioned(){return dimensioned;}
 	public ArrayList<Integer> getDim(){return dim;}
 	public String getValue(){return value;}
@@ -94,24 +88,6 @@ public class SymbolTableElement
 			case CLASS_TIPO: return "TIPO";
 			case CLASS_VARIABLE: return "VARIABLE";
 			
-			default: return "ERROR";
-		}
-	}
-	
-	/**
-	 * Gets the type name.
-	 * @param index
-	 * @return type name.
-	 */
-	public final static String getTypeNameByIndex(int index)
-	{
-		switch(index)
-		{
-			case D_TYPE_NONE: return "none";
-			case D_TYPE_ENTERO: return "entero";
-			case D_TYPE_DECIMAL: return "decimal";
-			case D_TYPE_LOGICO: return "logico";
-			case D_TYPE_ALF_NUM: return "alfanumerico";
 			default: return "ERROR";
 		}
 	}

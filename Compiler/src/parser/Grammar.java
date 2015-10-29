@@ -24,7 +24,7 @@ public class Grammar implements Terminal
 	 */
 	private String eName;
 	private int eClass;
-	private int eType;
+	private String eType;
 	private boolean eDimensioned;
 	private ArrayList<Integer> eDim;
 	private String eValue;
@@ -109,8 +109,8 @@ public class Grammar implements Terminal
 		nextToken();
 		checkTerminalTag(Token.IDENTIFIER, PRIORITY_HIGH, G_PROGAMA);
 		eName = value;
-		eClass = SymbolTableElement.CLASS_PROGRAMA;
 		eLine = parser.getLineOfCode();
+		eClass = SymbolTableElement.CLASS_PROGRAMA;
 		prepareElement();
 		
 		nextToken();
@@ -198,8 +198,8 @@ public class Grammar implements Terminal
 		nextToken();
 		if(!checkTerminalTag(Token.IDENTIFIER, PRIORITY_HIGH, G_LIBRARIES)) return false;
 		eName = value;
-		eClass = SymbolTableElement.CLASS_LIBRERIA;
 		eLine = parser.getLineOfCode();
+		eClass = SymbolTableElement.CLASS_LIBRERIA;
 		prepareElement();
 		
 		nextToken();
@@ -394,12 +394,15 @@ public class Grammar implements Terminal
 	
 	private boolean grammarFuncion()
 	{
-		clearParameters();
 		nextToken();
-		if(grammarTipo(PRIORITY_HIGH))
+		DataType dataType = new DataType();
+		if(grammarTipo(PRIORITY_HIGH, dataType))
 		{
+			eType = dataType.getDataType();
 			nextToken();
 			if(!checkTerminalTag(Token.IDENTIFIER, PRIORITY_HIGH, G_FUNCION)) return false;
+			eName = value;
+			eLine = parser.getLineOfCode();
 			
 			nextToken();
 			if(!checkTerminalValue(TERMINAL_LEFT_PAR, PRIORITY_HIGH, G_FUNCION)) return false;
@@ -409,12 +412,15 @@ public class Grammar implements Terminal
 			{
 				if(grammarParams())
 				{
+					hasParameters = true;
 					if(!checkTerminalValue(TERMINAL_RIGHT_PAR, PRIORITY_HIGH, G_FUNCION)) 
 						return false;
 					nextToken();
 				}
 				else return false;
 			}
+			eClass = SymbolTableElement.CLASS_FUNCION;
+			prepareElement();
 			if(grammarTipo(PRIORITY_LOW))
 			{
 				//Declare variables.
@@ -479,12 +485,11 @@ public class Grammar implements Terminal
 	
 	private boolean grammarProcedimiento()
 	{
-		clearParameters();
 		nextToken();
 		if(!checkTerminalTag(Token.IDENTIFIER, PRIORITY_HIGH, G_PROCEDIMIENTO)) return false;
-		eClass = SymbolTableElement.CLASS_PROCEDIMIENTO;
 		eName = value;
 		eLine = parser.getLineOfCode();
+		eType = DataType.UNDEFINED;
 		
 		nextToken();
 		if(!checkTerminalValue(TERMINAL_LEFT_PAR, PRIORITY_HIGH, G_PROCEDIMIENTO)) return false;
@@ -501,6 +506,7 @@ public class Grammar implements Terminal
 			}
 			else return false;
 		}
+		eClass = SymbolTableElement.CLASS_PROCEDIMIENTO;
 		prepareElement();
 		if(grammarTipo(PRIORITY_LOW))
 		{
@@ -1160,7 +1166,7 @@ public class Grammar implements Terminal
 		{
 			case SymbolTableElement.CLASS_LIBRERIA:
 			case SymbolTableElement.CLASS_PROGRAMA:
-				eType = SymbolTableElement.D_TYPE_NONE;
+				eType = DataType.UNDEFINED;
 				eDimensioned = false;
 				eDim = new ArrayList<Integer>();
 				eValue = "";
@@ -1168,7 +1174,7 @@ public class Grammar implements Terminal
 				break;
 				
 			case SymbolTableElement.CLASS_PROCEDIMIENTO:
-				eType = SymbolTableElement.D_TYPE_NONE;
+			case SymbolTableElement.CLASS_FUNCION:
 				eDimensioned = false;
 				eDim = new ArrayList<Integer>();
 				eValue = "";
@@ -1181,6 +1187,7 @@ public class Grammar implements Terminal
 					}
 				}
 				addElementToSymbolTable();
+				clearParameters();
 				break;
 				
 				default:
