@@ -233,14 +233,18 @@ public class Grammar implements Terminal
 	private boolean grammarConstantes()
 	{
 		nextToken();
-		if(grammarTipo(PRIORITY_HIGH))
+		DataType dataType = new DataType();
+		if(grammarTipo(PRIORITY_HIGH, dataType))
 		{
+			eType = dataType.getDataType();
 			//Controls the cycle to declare more than one constant of the same type.
 			boolean moreConstants = false;
 			do
 			{
 				nextToken();
 				if(!checkTerminalTag(Token.IDENTIFIER, PRIORITY_HIGH, G_CONSTANTES)) return false;
+				eName = value;
+				eLine = parser.getLineOfCode();
 				
 				nextToken();
 				if(!checkTerminalValue(TERMINAL_ASIGNATION, PRIORITY_HIGH, G_CONSTANTES)) 
@@ -249,7 +253,10 @@ public class Grammar implements Terminal
 				nextToken();
 				if(grammarLiteral(PRIORITY_HIGH))
 				{
+					eValue = value;
 					nextToken();
+					eClass = SymbolTableElement.CLASS_CONSTANTE;
+					prepareElement();
 					if(!checkTerminalValue(TERMINAL_SEMICOLON, PRIORITY_LOW, G_CONSTANTES))
 					{
 						if(!checkTerminalValue(TERMINAL_COMA, PRIORITY_HIGH, G_CONSTANTES)) 
@@ -1170,6 +1177,12 @@ public class Grammar implements Terminal
 				eDimensioned = false;
 				eDim = new ArrayList<Integer>();
 				eValue = "";
+				addElementToSymbolTable();
+				break;
+			
+			case SymbolTableElement.CLASS_CONSTANTE:
+				eDimensioned = false;
+				eDim = new ArrayList<Integer>();
 				addElementToSymbolTable();
 				break;
 				

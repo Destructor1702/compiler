@@ -1,5 +1,5 @@
 // Trying comments
-usando libreria Texto_ES, Otra;
+usando libreria Texto_ES;
 programa TeTruena
 	constante decimal PI := 3.141592;
 	constante entero MAX := 30;

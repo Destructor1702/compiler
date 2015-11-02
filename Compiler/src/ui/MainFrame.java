@@ -2,9 +2,7 @@ package ui;
 
 import java.awt.BorderLayout;
 import java.awt.Button;
-import java.awt.Color;
 import java.awt.FileDialog;
-import java.awt.FlowLayout;
 import java.awt.Frame;
 import java.awt.Panel;
 import java.awt.TextArea;
@@ -40,7 +38,7 @@ public class MainFrame extends Frame implements ActionListener, WindowListener
 	private Button btnCompile;
 	private Button btnExit;
 	private Panel pnlButton;
-	private Panel pnlEditor;
+	//private Panel pnlEditor;
 	private TextArea txtEditor;
 	private TextArea txtLines;
 	private TextArea txtStatus;
@@ -63,7 +61,7 @@ public class MainFrame extends Frame implements ActionListener, WindowListener
 		btnExit = new Button(TAG_EXIT);
 		btnExit.addActionListener(this);
 		pnlButton = new Panel();
-		pnlEditor = new Panel(new BorderLayout());
+		//pnlEditor = new Panel(new BorderLayout());
 		txtStatus = new TextArea();
 		txtEditor = new TextArea();
 		txtLines = new TextArea("", 1, 3, TextArea.SCROLLBARS_HORIZONTAL_ONLY);
