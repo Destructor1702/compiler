@@ -1,16 +1,18 @@
 package parser;
 
-import symtable.SymbolTableElement;
 import lexical.Scanner;
+import lexical.Terminal;
 import lexical.Token;
+import symtable.SymbolTableElement;
 import core.Core;
+import error.Error;
 
 /**
  * This class is in charge of administrate the parsing process.
  * @author natafrank
  *
  */
-public class Parser
+public class Parser implements Terminal
 {		
 	/**
 	 * Parsing state results.
@@ -100,8 +102,53 @@ public class Parser
 		return scanner.hasToken();
 	}
 	
+	/**
+	 * Adds an element to the symbol table.
+	 * @param e element
+	 * @return
+	 */
 	public boolean addElementToSymbolTable(SymbolTableElement e)
 	{
 		return core.addElementToSymbolTable(e);
+	}
+	
+	/**
+	 * Gets the value of an element by its name.
+	 * @param name
+	 * @return element's value.
+	 */
+	public String getValueFromSymbolTable(String name)
+	{
+		return getElementByName(name).getValue();
+	}
+	
+	/**
+	 * Gets the value of an element by its integer representation.
+	 * @param name
+	 * @return Integer value or null if error ocurrs.
+	 */
+	public Integer getIntValueFromElement(String name)
+	{
+		String value = getValueFromSymbolTable(name);
+		Integer intValue = null;
+		try
+		{
+			intValue = Integer.parseInt(value);
+		}
+		catch(NumberFormatException e)
+		{
+			core.addSemanticError(Error.semanticDataType(getLineOfCode(), TERMINAL_ENTERO));
+		}
+		return intValue;
+	}
+	
+	/**
+	 * Gets an element from the symbol table by its name.
+	 * @param name
+	 * @return element
+	 */
+	private SymbolTableElement getElementByName(String name)
+	{
+		return core.getElementByName(name);
 	}
 }
