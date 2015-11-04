@@ -3,9 +3,9 @@ usando libreria Texto_ES;
 programa TeTruena
 	constante decimal PI := 3.141592;
 	constante entero MAX := 30;
-
+	
 	tipo entero Arre arreglo(1 hasta MAX);
-
+	
 	entero i, n;
 	Arre vector;
 	decimal r, s;

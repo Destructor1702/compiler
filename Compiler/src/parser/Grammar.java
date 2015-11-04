@@ -25,7 +25,6 @@ public class Grammar implements Terminal
 	private String eName;
 	private int eClass;
 	private String eType;
-	private boolean eDimensioned;
 	private ArrayList<Integer> eDim;
 	private String eValue;
 	private int eLine;
@@ -985,7 +984,6 @@ public class Grammar implements Terminal
 	
 	private boolean grammarRange()
 	{
-		eDim = new ArrayList<Integer>();
 		nextToken();
 		int[] tags = {Token.CONSTANT_INT, Token.IDENTIFIER};
 		if(!checkTerminalTag(tags, PRIORITY_HIGH, G_RANGE)) return false;
@@ -1204,30 +1202,21 @@ public class Grammar implements Terminal
 		{
 			case SymbolTableElement.CLASS_LIBRERIA:
 			case SymbolTableElement.CLASS_PROGRAMA:
-				eType = DataType.UNDEFINED;
-				eDimensioned = false;
-				eDim = new ArrayList<Integer>();
-				eValue = "";
-				addElementToSymbolTable();
+				addElementToSymbolTable(eName, eClass, DataType.UNDEFINED,
+						false, new ArrayList<Integer>(), "", eLine);
 				break;
 			
 			case SymbolTableElement.CLASS_CONSTANTE:
-				eDimensioned = false;
-				eDim = new ArrayList<Integer>();
-				addElementToSymbolTable();
+				addElementToSymbolTable(eName, eClass, eType, false, new ArrayList<Integer>(),
+						eValue, eLine);
 				break;
 				
 			case SymbolTableElement.CLASS_TIPO:
-				eDimensioned = true;
-				eValue = "";
-				addElementToSymbolTable();
+				addElementToSymbolTable(eName, eClass, eType, true, eDim, "", eLine);
 				break;
 				
 			case SymbolTableElement.CLASS_PROCEDIMIENTO:
 			case SymbolTableElement.CLASS_FUNCION:
-				eDimensioned = false;
-				eDim = new ArrayList<Integer>();
-				eValue = "";
 				if(hasParameters)
 				{
 					int paramSize = parameters.size();
@@ -1236,7 +1225,8 @@ public class Grammar implements Terminal
 						this.eName += "$" + parameters.get(i);
 					}
 				}
-				addElementToSymbolTable();
+				addElementToSymbolTable(eName, eClass, eType, false, new ArrayList<Integer>(), 
+						"", eLine);
 				clearParameters();
 				break;
 				
@@ -1250,10 +1240,12 @@ public class Grammar implements Terminal
 	 * Adds a new element to the symbol table with the stored information inside the
 	 * element's buffers.
 	 */
-	private void addElementToSymbolTable()
+	private void addElementToSymbolTable(String eName, int eClass, String eType, 
+			boolean eDimensioned, ArrayList<Integer> eDim, String eValue, int eLine)
 	{
 		parser.addElementToSymbolTable(new SymbolTableElement(eName, eClass, eType, 
-				eDimensioned, eDim, eValue, eLine));
+				eDimensioned, new ArrayList<Integer>(eDim), eValue, eLine));
+		eDim.clear();
 	}
 	
 	/**
