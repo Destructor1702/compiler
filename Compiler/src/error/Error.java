@@ -62,6 +62,12 @@ public class Error
 				+ " been defined yet.";
 	}
 	
+	public final static String semanticDataType(int lineOfCode, String expected)
+	{
+		return "Semantic error in line: " + lineOfCode + "\nWrong data type, expected < "  
+				+ expected + " >.";
+	}
+	
 	/////////////////////////////////////////////////////////////////////////////////////////////
 
 }

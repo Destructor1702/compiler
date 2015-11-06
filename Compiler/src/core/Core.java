@@ -94,6 +94,16 @@ public class Core
 	}
 	
 	/**
+	 * Gets an element from the symbol table by its name.
+	 * @param name
+	 * @return element
+	 */
+	public SymbolTableElement getElementByName(String name)
+	{
+		return symTable.getElementByName(name);
+	}
+	
+	/**
 	 * Adds  new parsing error.
 	 * @param error 
 	 */

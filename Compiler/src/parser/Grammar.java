@@ -233,14 +233,18 @@ public class Grammar implements Terminal
 	private boolean grammarConstantes()
 	{
 		nextToken();
-		if(grammarTipo(PRIORITY_HIGH))
+		DataType dataType = new DataType();
+		if(grammarTipo(PRIORITY_HIGH, dataType))
 		{
+			eType = dataType.getDataType();
 			//Controls the cycle to declare more than one constant of the same type.
 			boolean moreConstants = false;
 			do
 			{
 				nextToken();
 				if(!checkTerminalTag(Token.IDENTIFIER, PRIORITY_HIGH, G_CONSTANTES)) return false;
+				eName = value;
+				eLine = parser.getLineOfCode();
 				
 				nextToken();
 				if(!checkTerminalValue(TERMINAL_ASIGNATION, PRIORITY_HIGH, G_CONSTANTES)) 
@@ -249,7 +253,10 @@ public class Grammar implements Terminal
 				nextToken();
 				if(grammarLiteral(PRIORITY_HIGH))
 				{
+					eValue = value;
 					nextToken();
+					eClass = SymbolTableElement.CLASS_CONSTANTE;
+					prepareElement();
 					if(!checkTerminalValue(TERMINAL_SEMICOLON, PRIORITY_LOW, G_CONSTANTES))
 					{
 						if(!checkTerminalValue(TERMINAL_COMA, PRIORITY_HIGH, G_CONSTANTES)) 
@@ -321,13 +328,17 @@ public class Grammar implements Terminal
 	private boolean grammarTipos()
 	{
 		nextToken();
-		if(grammarTipo(PRIORITY_HIGH))
+		DataType dataType = new DataType();
+		if(grammarTipo(PRIORITY_HIGH, dataType))
 		{
+			eType = dataType.getDataType();
 			boolean moreTypes = false;
 			do
 			{
 				nextToken();
 				if(!checkTerminalTag(Token.IDENTIFIER, PRIORITY_HIGH, G_TIPOS)) return false;
+				eName = value;
+				eLine = parser.getLineOfCode();
 				
 				nextToken();
 				if(!checkTerminalValue(TERMINAL_ARREGLO, PRIORITY_HIGH, G_TIPOS)) return false;
@@ -338,7 +349,7 @@ public class Grammar implements Terminal
 				boolean moreRanges = false;
 				do
 				{
-					if(moreRanges = grammarRango())
+					if(moreRanges = grammarRange())
 					{
 						nextToken();
 						if(!checkTerminalValue(TERMINAL_RIGHT_PAR, PRIORITY_LOW, G_TIPOS))
@@ -348,6 +359,8 @@ public class Grammar implements Terminal
 						}
 						else
 						{
+							eClass = SymbolTableElement.CLASS_TIPO;
+							prepareElement();
 							nextToken();
 							if(!checkTerminalValue(TERMINAL_SEMICOLON, PRIORITY_HIGH, G_TIPOS))
 								return false;
@@ -970,20 +983,45 @@ public class Grammar implements Terminal
 		return false;
 	}
 	
-	private boolean grammarRango()
+	private boolean grammarRange()
 	{
+		eDim = new ArrayList<Integer>();
 		nextToken();
-		if(grammarLiteral(PRIORITY_HIGH))
-		{
-			nextToken();
-			if(!checkTerminalValue(TERMINAL_HASTA, PRIORITY_HIGH, G_RANGO)) return false;
+		int[] tags = {Token.CONSTANT_INT, Token.IDENTIFIER};
+		if(!checkTerminalTag(tags, PRIORITY_HIGH, G_RANGE)) return false;
+		if(tag == Token.CONSTANT_INT)
+			eDim.add(Integer.parseInt(value));
+		else 
+			setIntValueFromSymbolTable(value);
 			
-			nextToken();
-			if(grammarLiteral(PRIORITY_HIGH)) return true;
-			return false;
+		nextToken();
+		if(!checkTerminalValue(TERMINAL_HASTA, PRIORITY_HIGH, G_RANGE)) return false;
+		
+		nextToken();
+		if(!checkTerminalTag(tags, PRIORITY_HIGH, G_RANGE)) return false;
+		if(tag == Token.CONSTANT_INT)
+			eDim.add(Integer.parseInt(value));
+		else 
+			setIntValueFromSymbolTable(value);
+		return true;
+	}
+	
+	/**
+	 * Adds a value to the arraylist of dimensions.
+	 * @param eName
+	 * @return true if success, false if not.
+	 */
+	private boolean setIntValueFromSymbolTable(String eName)
+	{
+		Integer value = parser.getIntValueFromElement(eName);
+		if(value != null)
+		{
+			eDim.add(value);
+			return true;
 		}
 		return false;
 	}
+	
 	/**
 	 * Checks if errors where found during grammatical analysis.
 	 * @return errorFound.
@@ -1169,6 +1207,18 @@ public class Grammar implements Terminal
 				eType = DataType.UNDEFINED;
 				eDimensioned = false;
 				eDim = new ArrayList<Integer>();
+				eValue = "";
+				addElementToSymbolTable();
+				break;
+			
+			case SymbolTableElement.CLASS_CONSTANTE:
+				eDimensioned = false;
+				eDim = new ArrayList<Integer>();
+				addElementToSymbolTable();
+				break;
+				
+			case SymbolTableElement.CLASS_TIPO:
+				eDimensioned = true;
 				eValue = "";
 				addElementToSymbolTable();
 				break;

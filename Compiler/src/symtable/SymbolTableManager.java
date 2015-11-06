@@ -72,6 +72,16 @@ public class SymbolTableManager
 	}
 	
 	/**
+	 * Gets an element from the table by name.
+	 * @param name
+	 * @returnn element
+	 */
+	public SymbolTableElement getElementByName(String name)
+	{
+		return symbolTable.get(name);
+	}
+	
+	/**
 	 * Gets the String of the symbol table.
 	 * @return String symbol table.
 	 */
