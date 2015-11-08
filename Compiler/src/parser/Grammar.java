@@ -1032,6 +1032,14 @@ public class Grammar implements Terminal
 			eDim.add(Integer.parseInt(value));
 		else 
 			setIntValueFromSymbolTable(value);
+		
+		//Check that range goes from low to high
+		int dim1 = eDim.get(0);
+		int dim2 = eDim.get(1);
+		if(dim1 > dim2)
+			parser.addSemanticError(Error.semanticFreeError(parser.getLineOfCode(), 
+					"Wrong range from [ " + dim1 + " ] to [ " + dim2 + " ], expected to go from "
+							+ "low to high."));
 		return true;
 	}
 	
