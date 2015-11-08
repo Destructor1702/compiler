@@ -15,6 +15,7 @@ public class DataType
 	public final static String DECIMAL = "D";
 	public final static String LOGICO = "L";
 	public final static String ALFANUMERICO = "A";
+	public final static String LAMBDA = "0";
 	
 	private String dataType;
 	

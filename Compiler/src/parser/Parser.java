@@ -127,7 +127,11 @@ public class Parser implements Terminal
 	 */
 	public String getValueFromSymbolTable(String name)
 	{
-		return getElementByName(name).getValue();
+		SymbolTableElement e = getElementByName(name);
+		if(e != null)
+			return getElementByName(name).getValue();
+		core.addSemanticError(Error.semanticElementNotDefined(getLineOfCode(), name));
+		return "-999";
 	}
 	
 	/**
