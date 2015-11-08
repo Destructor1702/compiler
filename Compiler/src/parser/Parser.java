@@ -66,13 +66,21 @@ public class Parser implements Terminal
 	}
 	
 	/**
-	 * Adds  new error to the map.
-	 * @param line Line of code where the error was found.
+	 * Adds a parsing error.
 	 * @param error 
 	 */
-	public void addError(String error)
+	public void addParsingError(String error)
 	{
 		core.addParsingError(error);
+	}
+	
+	/**
+	 * Adds a semantic error.
+	 * @param error 
+	 */
+	public void addSemanticError(String error)
+	{
+		core.addSemanticError(error);
 	}
 	
 	/**

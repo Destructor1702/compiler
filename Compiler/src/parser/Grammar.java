@@ -192,7 +192,7 @@ public class Grammar implements Terminal
 		
 		if(hasUnreachableCode())
 		{
-			parser.addError(Error.createParsingFreeError(parser.getLineOfCode(), 
+			parser.addParsingError(Error.createParsingFreeError(parser.getLineOfCode(), 
 					"Unreachable code."));
 			errorFound = true;
 		}				
@@ -264,6 +264,7 @@ public class Grammar implements Terminal
 				if(grammarLiteral(PRIORITY_HIGH))
 				{
 					eValue = value;
+					checkDataTypeDeclaration(eType, tag, parser.getLineOfCode());
 					nextToken();
 					eClass = SymbolTableElement.CLASS_CONSTANTE;
 					prepareElement();
@@ -425,7 +426,7 @@ public class Grammar implements Terminal
 			else
 			{
 				String[] expected = {TERMINAL_FUNCION, TERMINAL_PROCEDIMIENTO};
-				parser.addError(Error.createParsingError(parser.getLineOfCode(), value, expected,
+				parser.addParsingError(Error.createParsingError(parser.getLineOfCode(), value, expected,
 						getGrammarNameByIndex(G_FUNC_PROC)));
 			}
 		}
@@ -1006,8 +1007,8 @@ public class Grammar implements Terminal
 
 	private boolean grammarLiteral(int priority)
 	{
-		int[] tags = {Token.CONSTANT_INT, Token.CONSTANT_DECIMAL, Token.CONSTANT_LOGICAL,
-				Token.CONSTANT_STRING, Token.IDENTIFIER};
+		int[] tags = {Token.CONSTANT_ENTERO, Token.CONSTANT_DECIMAL, Token.CONSTANT_LOGICO,
+				Token.CONSTANT_ALFANUM, Token.IDENTIFIER};
 		if(checkTerminalTag(tags, priority, G_LITERAL)) return true;
 		return false;
 	}
@@ -1015,9 +1016,9 @@ public class Grammar implements Terminal
 	private boolean grammarRange()
 	{
 		nextToken();
-		int[] tags = {Token.CONSTANT_INT, Token.IDENTIFIER};
+		int[] tags = {Token.CONSTANT_ENTERO, Token.IDENTIFIER};
 		if(!checkTerminalTag(tags, PRIORITY_HIGH, G_RANGE)) return false;
-		if(tag == Token.CONSTANT_INT)
+		if(tag == Token.CONSTANT_ENTERO)
 			eDim.add(Integer.parseInt(value));
 		else 
 			setIntValueFromSymbolTable(value);
@@ -1027,7 +1028,7 @@ public class Grammar implements Terminal
 		
 		nextToken();
 		if(!checkTerminalTag(tags, PRIORITY_HIGH, G_RANGE)) return false;
-		if(tag == Token.CONSTANT_INT)
+		if(tag == Token.CONSTANT_ENTERO)
 			eDim.add(Integer.parseInt(value));
 		else 
 			setIntValueFromSymbolTable(value);
@@ -1072,7 +1073,7 @@ public class Grammar implements Terminal
 		}
 		catch(NullPointerException e)
 		{
-			parser.addError(Error.parsingErrorNoTokenFound(parser.getLineOfCode()));
+			parser.addParsingError(Error.parsingErrorNoTokenFound(parser.getLineOfCode()));
 			errorFound = true;
 		}
 	}
@@ -1109,7 +1110,7 @@ public class Grammar implements Terminal
 				if(value.equals(terminal)) return true;
 				else
 				{
-					parser.addError(Error.createParsingError(parser.getLineOfCode(), value, 
+					parser.addParsingError(Error.createParsingError(parser.getLineOfCode(), value, 
 							terminal, getGrammarNameByIndex(grammarIndex)));
 					errorFound = true;
 					return false;
@@ -1147,7 +1148,7 @@ public class Grammar implements Terminal
 				for(int j = 0; j < tagsLength; j++)
 					expected[i] = Token.getTagString(tags[j]);
 				
-				parser.addError(Error.createParsingError(parser.getLineOfCode(), value, 
+				parser.addParsingError(Error.createParsingError(parser.getLineOfCode(), value, 
 							expected, getGrammarNameByIndex(grammarIndex)));
 					errorFound = true;
 					return false;
@@ -1178,7 +1179,7 @@ public class Grammar implements Terminal
 				if(tag == terminalTag) return true;
 				else
 				{
-					parser.addError(Error.createParsingError(parser.getLineOfCode(), value, 
+					parser.addParsingError(Error.createParsingError(parser.getLineOfCode(), value, 
 							Token.getTagString(terminalTag), getGrammarNameByIndex(grammarIndex)));
 					errorFound = true;
 					return false;
@@ -1208,7 +1209,7 @@ public class Grammar implements Terminal
 				String expected[] = new String[size];
 				for(int i = 0; i < size; i++)
 					expected[i] = Token.getTagString(terminalTags[i]);
-				parser.addError(Error.createParsingError(parser.getLineOfCode(), value, 
+				parser.addParsingError(Error.createParsingError(parser.getLineOfCode(), value, 
 						expected, getGrammarNameByIndex(grammarIndex)));
 				errorFound = true;
 				return false;
@@ -1268,7 +1269,7 @@ public class Grammar implements Terminal
 				break;
 				
 				default:
-					parser.addError("Symbol Table Error.\nNo element class defined for "
+					parser.addParsingError("Symbol Table Error.\nNo element class defined for "
 							+ "this symbol.");
 		}
 	}
@@ -1317,6 +1318,31 @@ public class Grammar implements Terminal
 		parser.addElementToSymbolTable(new SymbolTableElement(eName, eClass, eType, 
 				eDimensioned, new ArrayList<Integer>(eDim), eValue, eLine));
 		eDim.clear();
+	}
+	
+	private void checkDataTypeDeclaration(String dataType, int tag, int line)
+	{
+		switch(tag)
+		{
+			case Token.CONSTANT_ENTERO:
+				if(!dataType.equals(DataType.ENTERO))
+					parser.addSemanticError(Error.semanticDataType(line, Token.getTagString(tag)));
+				break;
+			case Token.CONSTANT_DECIMAL:
+				if(!dataType.equals(DataType.DECIMAL))
+					parser.addSemanticError(Error.semanticDataType(line, Token.getTagString(tag)));
+				break;
+			case Token.CONSTANT_LOGICO:
+				if(!dataType.equals(DataType.LOGICO))
+					parser.addSemanticError(Error.semanticDataType(line, Token.getTagString(tag)));
+				break;
+			case Token.CONSTANT_ALFANUM:
+				if(!dataType.equals(DataType.ALFANUMERICO))
+					parser.addSemanticError(Error.semanticDataType(line, Token.getTagString(tag)));
+				break;
+			default:
+				parser.addSemanticError(Error.semanticDataType(line, Token.getTagString(tag)));
+		}
 	}
 	
 	/**

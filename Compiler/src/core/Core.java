@@ -119,6 +119,7 @@ public class Core
 	public void addSemanticError(String error)
 	{
 		semanticErrors.add(error);
+		symTable.setError(true);
 	}
 	
 	/**

@@ -15,10 +15,10 @@ public class Token
 	public final static int OPERATOR_LOGICAL = 4;
 	public final static int OPERATOR_ASIGNATION = 5;
 	
-	public final static int CONSTANT_STRING = 6;
-	public final static int CONSTANT_INT = 7;
+	public final static int CONSTANT_ALFANUM = 6;
+	public final static int CONSTANT_ENTERO = 7;
 	public final static int CONSTANT_DECIMAL = 8;
-	public final static int CONSTANT_LOGICAL = 9;
+	public final static int CONSTANT_LOGICO = 9;
 	
 	public final static int DELIMITATOR = 10;
 	public final static int COMMENT = 11;
@@ -58,9 +58,9 @@ public class Token
 			case OPERATOR_LOGICAL: return "Logical Operator";
 			case OPERATOR_ASIGNATION: return "Asignation Operator";
 			case CONSTANT_DECIMAL: return "Decimal Constant";
-			case CONSTANT_INT: return "Int Constant";
-			case CONSTANT_LOGICAL: return "Logical Constant";
-			case CONSTANT_STRING: return "String Constant";
+			case CONSTANT_ENTERO: return "Int Constant";
+			case CONSTANT_LOGICO: return "Logical Constant";
+			case CONSTANT_ALFANUM: return "Alfanum Constant";
 			case DELIMITATOR: return "Delimitator";
 			case COMMENT: return "Comment";
 			default: return "Error";
