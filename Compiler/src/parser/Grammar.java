@@ -276,14 +276,18 @@ public class Grammar implements Terminal
 	
 	private boolean grammarVariables()
 	{
-		if(grammarTipo(PRIORITY_HIGH))
+		DataType dataType = new DataType();
+		if(grammarTipo(PRIORITY_HIGH, dataType))
 		{
+			eType = dataType.getDataType();
 			//Controls the cycle to declare more than one variable of the same type.
 			boolean moreVariables = false;
 			do
 			{
 				nextToken();
 				if(!checkTerminalTag(Token.IDENTIFIER, PRIORITY_HIGH, G_VARIABLES)) return false;
+				eName = value;
+				eLine = parser.getLineOfCode();
 				
 				nextToken();
 				if(!checkTerminalValue(TERMINAL_SEMICOLON, PRIORITY_LOW, G_VARIABLES))
@@ -297,6 +301,9 @@ public class Grammar implements Terminal
 							nextToken();
 							if(grammarLiteral(PRIORITY_HIGH))
 							{
+								eValue = value;
+								eClass = SymbolTableElement.CLASS_VARIABLE;
+								prepareElement();
 								nextToken();
 								if(!checkTerminalValue(TERMINAL_SEMICOLON, PRIORITY_LOW, 
 										G_VARIABLES))
@@ -311,11 +318,20 @@ public class Grammar implements Terminal
 							else return false;
 						}
 					}
-					else moreVariables = true;
+					else
+					{
+						moreVariables = true;
+						eValue = "";
+						eClass = SymbolTableElement.CLASS_VARIABLE;
+						prepareElement();
+					}
 				}
 				else
 				{
 					moreVariables = false;
+					eValue = "";
+					eClass = SymbolTableElement.CLASS_VARIABLE;
+					prepareElement();
 					return true;
 				}
 			}
@@ -1207,6 +1223,7 @@ public class Grammar implements Terminal
 				break;
 			
 			case SymbolTableElement.CLASS_CONSTANTE:
+			case SymbolTableElement.CLASS_VARIABLE:
 				addElementToSymbolTable(eName, eClass, eType, false, new ArrayList<Integer>(),
 						eValue, eLine);
 				break;
