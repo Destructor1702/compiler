@@ -33,7 +33,7 @@ public class Grammar implements Terminal
 	 * Buffers used by the semantic analyzer to manage the parameters in functions and procedures.
 	 */
 	private boolean hasParameters;
-	private ArrayList<String> parameters;
+	private ArrayList<Parameter> parameters;
 	
 	/**
 	 * Index for grammars.
@@ -83,7 +83,7 @@ public class Grammar implements Terminal
 		errorFound = false;
 		eDim = new ArrayList<Integer>();
 		hasParameters = false;
-		parameters = new ArrayList<String>();
+		parameters = new ArrayList<Parameter>();
 	}
 	
 	/**
@@ -493,7 +493,8 @@ public class Grammar implements Terminal
 				{
 					nextToken();
 					if(!checkTerminalTag(Token.IDENTIFIER, PRIORITY_HIGH, G_PARAMS)) return false;
-					parameters.add(type.getDataType());
+					parameters.add(new Parameter(type.getDataType(), value, 
+							parser.getLineOfCode()));
 					
 					nextToken();
 					if(checkTerminalValue(TERMINAL_RIGHT_PAR, PRIORITY_LOW, G_PARAMS)) return true;
@@ -1208,9 +1209,7 @@ public class Grammar implements Terminal
 	}
 	
 	/**
-	 * Prepare the element to be inserted into the symbol table.
-	 * @param eName
-	 * @param eClass
+	 * Prepares the element to be inserted into the symbol table.
 	 */
 	private void prepareElement()
 	{
@@ -1238,9 +1237,9 @@ public class Grammar implements Terminal
 				{
 					int paramSize = parameters.size();
 					for(int i = 0; i < paramSize; i++)
-					{
-						this.eName += "$" + parameters.get(i);
-					}
+						eName += "$" + parameters.get(i).getDataType();
+					for(int i = 0; i < paramSize; i++)
+						prepareParameter(parameters.get(i));
 				}
 				addElementToSymbolTable(eName, eClass, eType, false, new ArrayList<Integer>(), 
 						"", eLine);
@@ -1251,6 +1250,15 @@ public class Grammar implements Terminal
 					parser.addError("Symbol Table Error.\nNo element class defined for "
 							+ "this symbol.");
 		}
+	}
+	
+	/**
+	 * Prepares a parameter of a function or procedure to be inserted into the symbol table.
+	 */
+	private void prepareParameter(Parameter p)
+	{
+		addElementToSymbolTable(p.getId() + "$" + eName, SymbolTableElement.CLASS_PARAMETRO, 
+				p.getDataType(), false, new ArrayList<Integer>(), "", p.getLineOfCode());
 	}
 	
 	/**
