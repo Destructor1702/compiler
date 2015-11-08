@@ -36,6 +36,14 @@ public class Grammar implements Terminal
 	private ArrayList<Parameter> parameters;
 	
 	/**
+	 * Flag to indicate if the declaration of a variable is being local, that is, inside a function
+	 * or procedure.
+	 */
+	private boolean isLocalDeclaration;
+	private boolean hasLocalDeclaration;
+	private ArrayList<SymbolTableElement> localVariables;
+	
+	/**
 	 * Index for grammars.
 	 */
 	public final static int G_PROGAMA = 1;
@@ -84,6 +92,9 @@ public class Grammar implements Terminal
 		eDim = new ArrayList<Integer>();
 		hasParameters = false;
 		parameters = new ArrayList<Parameter>();
+		isLocalDeclaration = false;
+		hasLocalDeclaration = false;
+		localVariables = new ArrayList<SymbolTableElement>();
 	}
 	
 	/**
@@ -452,6 +463,7 @@ public class Grammar implements Terminal
 			if(grammarTipo(PRIORITY_LOW))
 			{
 				//Declare variables.
+				isLocalDeclaration = true;
 				boolean stillDeclaring = true;
 				while(stillDeclaring)
 				{
@@ -540,6 +552,7 @@ public class Grammar implements Terminal
 		if(grammarTipo(PRIORITY_LOW))
 		{
 			//Declare variables.
+			isLocalDeclaration = true;
 			boolean stillDeclaring = true;
 			while(stillDeclaring)
 			{
@@ -1223,8 +1236,15 @@ public class Grammar implements Terminal
 			
 			case SymbolTableElement.CLASS_CONSTANTE:
 			case SymbolTableElement.CLASS_VARIABLE:
-				addElementToSymbolTable(eName, eClass, eType, false, new ArrayList<Integer>(),
-						eValue, eLine);
+				if(!isLocalDeclaration)
+					addElementToSymbolTable(eName, eClass, eType, false, new ArrayList<Integer>(),
+							eValue, eLine);
+				else
+				{
+					localVariables.add(new SymbolTableElement(eName, eClass, eType, false, 
+							new ArrayList<Integer>(), eValue, eLine));
+					hasLocalDeclaration = true;
+				}
 				break;
 				
 			case SymbolTableElement.CLASS_TIPO:
@@ -1243,6 +1263,7 @@ public class Grammar implements Terminal
 				}
 				addElementToSymbolTable(eName, eClass, eType, false, new ArrayList<Integer>(), 
 						"", eLine);
+				if(hasLocalDeclaration) prepareLocalVariables();
 				clearParameters();
 				break;
 				
@@ -1259,6 +1280,31 @@ public class Grammar implements Terminal
 	{
 		addElementToSymbolTable(p.getId() + "$" + eName, SymbolTableElement.CLASS_PARAMETRO, 
 				p.getDataType(), false, new ArrayList<Integer>(), "", p.getLineOfCode());
+	}
+	
+	/**
+	 * Prepares local variables to be inserted into the symbol table.
+	 */
+	private void prepareLocalVariables()
+	{
+		int size = localVariables.size();
+		for(int i = 0; i < size; i++)
+		{
+			SymbolTableElement e = localVariables.get(i);
+			addElementToSymbolTable(e.getName() + "$" + eName, SymbolTableElement.CLASS_LOCAL, 
+					e.getType(), e.isDimensioned(), e.getDim(), e.getValue(), e.getLine());
+		}
+		clearLocalVariables();
+	}
+	
+	/**
+	 * Clears the local variables buffers.
+	 */
+	private void clearLocalVariables()
+	{
+		isLocalDeclaration = false;
+		hasLocalDeclaration = false;
+		localVariables.clear();
 	}
 	
 	/**
