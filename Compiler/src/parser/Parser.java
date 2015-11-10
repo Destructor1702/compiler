@@ -159,7 +159,7 @@ public class Parser implements Terminal
 	 * @param name
 	 * @return element
 	 */
-	private SymbolTableElement getElementByName(String name)
+	public SymbolTableElement getElementByName(String name)
 	{
 		return core.getElementByName(name);
 	}

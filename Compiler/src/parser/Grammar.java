@@ -1,14 +1,14 @@
 package parser;
 
 import java.util.ArrayList;
+import java.util.Stack;
 
-import lexical.Terminal;
 import lexical.Token;
 import symtable.DataType;
 import symtable.SymbolTableElement;
 import error.Error;
 
-public class Grammar implements Terminal
+public class Grammar implements OperationResult
 {
 	private final static int PRIORITY_HIGH = 1;
 	private final static int PRIORITY_LOW = 2;
@@ -42,6 +42,14 @@ public class Grammar implements Terminal
 	private boolean isLocalDeclaration;
 	private boolean hasLocalDeclaration;
 	private ArrayList<SymbolTableElement> localVariables;
+	private String localFunctionName;
+	
+	/**
+	 * Buffers for the operation results.
+	 */
+	private final static int UNARY_OP = 1;
+	private final static int BINARY_OP = 2;
+	private Stack<String> typeStack;
 	
 	/**
 	 * Index for grammars.
@@ -95,6 +103,7 @@ public class Grammar implements Terminal
 		isLocalDeclaration = false;
 		hasLocalDeclaration = false;
 		localVariables = new ArrayList<SymbolTableElement>();
+		typeStack = new Stack<String>();
 	}
 	
 	/**
@@ -266,7 +275,13 @@ public class Grammar implements Terminal
 					eValue = value;
 					checkDataTypeDeclaration(eType, tag, parser.getLineOfCode());
 					nextToken();
-					eClass = SymbolTableElement.CLASS_CONSTANTE;
+					if(isLocalDeclaration)
+					{
+						eClass = SymbolTableElement.CLASS_LOCAL;
+						eName = eName + "$" + localFunctionName;
+					}
+					else
+						eClass = SymbolTableElement.CLASS_CONSTANTE;
 					prepareElement();
 					if(!checkTerminalValue(TERMINAL_SEMICOLON, PRIORITY_LOW, G_CONSTANTES))
 					{
@@ -314,7 +329,13 @@ public class Grammar implements Terminal
 							if(grammarLiteral(PRIORITY_HIGH))
 							{
 								eValue = value;
-								eClass = SymbolTableElement.CLASS_VARIABLE;
+								if(isLocalDeclaration)
+								{
+									eClass = SymbolTableElement.CLASS_LOCAL;
+									eName = eName + "$" + localFunctionName;
+								}
+								else
+									eClass = SymbolTableElement.CLASS_VARIABLE;
 								prepareElement();
 								nextToken();
 								if(!checkTerminalValue(TERMINAL_SEMICOLON, PRIORITY_LOW, 
@@ -334,7 +355,13 @@ public class Grammar implements Terminal
 					{
 						moreVariables = true;
 						eValue = "";
-						eClass = SymbolTableElement.CLASS_VARIABLE;
+						if(isLocalDeclaration)
+						{
+							eClass = SymbolTableElement.CLASS_LOCAL;
+							eName = eName + "$" + localFunctionName;
+						}
+						else
+							eClass = SymbolTableElement.CLASS_VARIABLE;
 						prepareElement();
 					}
 				}
@@ -342,7 +369,13 @@ public class Grammar implements Terminal
 				{
 					moreVariables = false;
 					eValue = "";
-					eClass = SymbolTableElement.CLASS_VARIABLE;
+					if(isLocalDeclaration)
+					{
+						eClass = SymbolTableElement.CLASS_LOCAL;
+						eName = eName + "$" + localFunctionName;
+					}
+					else
+						eClass = SymbolTableElement.CLASS_VARIABLE;
 					prepareElement();
 					return true;
 				}
@@ -434,6 +467,7 @@ public class Grammar implements Terminal
 	
 	private boolean grammarFuncion()
 	{
+		isLocalDeclaration = true;
 		nextToken();
 		DataType dataType = new DataType();
 		if(grammarTipo(PRIORITY_HIGH, dataType))
@@ -464,7 +498,6 @@ public class Grammar implements Terminal
 			if(grammarTipo(PRIORITY_LOW))
 			{
 				//Declare variables.
-				isLocalDeclaration = true;
 				boolean stillDeclaring = true;
 				while(stillDeclaring)
 				{
@@ -489,6 +522,8 @@ public class Grammar implements Terminal
 			nextToken();
 			if(!checkTerminalValue(TERMINAL_SEMICOLON, PRIORITY_HIGH, G_FUNCION)) return false;
 			
+			localFunctionName = "";
+			isLocalDeclaration = false;
 			return true;
 		}
 		return false;
@@ -527,6 +562,7 @@ public class Grammar implements Terminal
 	
 	private boolean grammarProcedimiento()
 	{
+		isLocalDeclaration = true;
 		nextToken();
 		if(!checkTerminalTag(Token.IDENTIFIER, PRIORITY_HIGH, G_PROCEDIMIENTO)) return false;
 		eName = value;
@@ -553,7 +589,6 @@ public class Grammar implements Terminal
 		if(grammarTipo(PRIORITY_LOW))
 		{
 			//Declare variables.
-			isLocalDeclaration = true;
 			boolean stillDeclaring = true;
 			while(stillDeclaring)
 			{
@@ -566,7 +601,7 @@ public class Grammar implements Terminal
 			}
 		}
 		if(!grammarBlock()) return false;
-
+		
 		if(!checkTerminalValue(TERMINAL_FIN, PRIORITY_HIGH, G_PROCEDIMIENTO)) return false;
 		
 		nextToken();
@@ -578,6 +613,8 @@ public class Grammar implements Terminal
 		nextToken();
 		if(!checkTerminalValue(TERMINAL_SEMICOLON, PRIORITY_HIGH, G_PROCEDIMIENTO)) return false;
 		
+		localFunctionName = "";
+		isLocalDeclaration = false;
 		return true;
 	}
 	
@@ -650,6 +687,18 @@ public class Grammar implements Terminal
 	{
 		nextToken();
 		if(!checkTerminalTag(Token.IDENTIFIER, PRIORITY_HIGH, G_CICLO)) return false;
+		eName = value;
+		eType = DataType.ENTERO;
+		eLine = parser.getLineOfCode();
+		eValue = "1"; //hardcoded value.
+		if(isLocalDeclaration)
+		{
+			eClass = SymbolTableElement.CLASS_LOCAL;
+			eName = eName + "$" + localFunctionName;
+		}
+		else
+			eClass = SymbolTableElement.CLASS_VARIABLE;
+		prepareElement();
 		
 		nextToken();
 		if(!checkTerminalValue(TERMINAL_EN, PRIORITY_HIGH, G_CICLO)) return false;
@@ -726,42 +775,11 @@ public class Grammar implements Terminal
 		}
 	}
 	
-	private boolean grammarExpr()
-	{
-		while(true)
-		{
-			if(!grammarOpy()) return false;
-			nextToken();
-			if(checkTerminalValue(TERMINAL_O, PRIORITY_LOW, G_EXPR))
-				nextToken();
-			else
-			{
-				pushToken();
-				return true;
-			}
-		}
-	}
-
-	private boolean grammarOpy()
-	{
-		while(true)
-		{
-			if(!grammarOpNo()) return false;
-			nextToken();
-			if(checkTerminalValue(TERMINAL_Y, PRIORITY_LOW, G_OP_Y))
-				nextToken();
-			else
-			{
-				pushToken();
-				return true;
-			}
-		}
-	}
-	
 	private boolean grammarTermino()
 	{
 		if(checkTerminalTag(Token.IDENTIFIER, PRIORITY_LOW, G_TERMINO))
 		{
+			String id = value;
 			nextToken();
 			if(checkTerminalValue(TERMINAL_LEFT_BRAC, PRIORITY_LOW, G_TERMINO))
 				return grammarUdim();
@@ -770,10 +788,18 @@ public class Grammar implements Terminal
 			else
 			{
 				pushToken();
+				if(!localFunctionName.equals(""))
+					id = id + "$" + localFunctionName;
+				typeStack.push(parser.getElementByName(id).getType());
 				return true;
 			}
 		}
-		else if(grammarLiteral(PRIORITY_LOW)) return true;
+		else if(grammarLiteral(PRIORITY_LOW))
+		{
+			if(tag != Token.IDENTIFIER)
+				typeStack.push(DataType.getDataTypeByTokenTag(tag));
+			return true;
+		}
 		else if(checkTerminalValue(TERMINAL_LEFT_PAR, PRIORITY_HIGH, G_TERMINO))
 		{
 			nextToken();
@@ -787,24 +813,39 @@ public class Grammar implements Terminal
 	
 	private boolean grammarSigno()
 	{
+		String op = "";
 		if(checkTerminalValue(TERMINAL_OP_SUB, PRIORITY_LOW, G_SIGNO))
+		{
+			op = TERMINAL_OP_SUB;
 			nextToken();
-		if(grammarTermino()) return true;
+		}
+		if(grammarTermino())
+		{
+			if(!op.equals(""))
+				verifyTypeStack(UNARY_OP, op);
+			return true;
+		}
 		return false;
 	}
 	
 	private boolean grammarExpo()
 	{
+		String op = "";
 		while(true)
 		{
 			if(grammarSigno())
 			{
 				nextToken();
 				if(checkTerminalValue(TERMINAL_OP_EXP, PRIORITY_LOW, G_EXPO))
+				{
+					op = TERMINAL_OP_EXP;
 					nextToken();
+				}	
 				else
 				{
 					pushToken();
+					if(!op.equals(""))
+						verifyTypeStack(BINARY_OP, op);
 					return true;
 				}
 			}
@@ -814,19 +855,31 @@ public class Grammar implements Terminal
 	
 	private boolean grammarMulti()
 	{
+		String op = "";
 		while(true)
 		{
 			if(!grammarExpo()) return false;
 			nextToken();
 			if(checkTerminalValue(TERMINAL_OP_MUL, PRIORITY_LOW, G_MULTI))
+			{
+				op = TERMINAL_OP_MUL;
 				nextToken();
+			}
 			else if(checkTerminalValue(TERMINAL_OP_DIV, PRIORITY_LOW, G_MULTI))
+			{
+				op = TERMINAL_OP_DIV;
 				nextToken();
+			}
 			else if(checkTerminalValue(TERMINAL_OP_MOD, PRIORITY_LOW, G_MULTI))
+			{
+				op = TERMINAL_OP_MOD;
 				nextToken();
+			}
 			else
 			{
 				pushToken();
+				if(!op.equals(""))
+					verifyTypeStack(BINARY_OP, op);
 				return true;
 			}
 		}
@@ -834,17 +887,26 @@ public class Grammar implements Terminal
 	
 	private boolean grammarOpSR()
 	{
+		String op = "";
 		while(true)
 		{
 			if(!grammarMulti()) return false;
 			nextToken();
 			if(checkTerminalValue(TERMINAL_OP_ADD, PRIORITY_LOW, G_OP_SR))
+			{
+				op = TERMINAL_OP_ADD;
 				nextToken();
+			}
 			else if(checkTerminalValue(TERMINAL_OP_SUB, PRIORITY_LOW, G_OP_SR))
+			{
+				op = TERMINAL_OP_SUB;
 				nextToken();
+			}
 			else
 			{
 				pushToken();
+				if(!op.equals(""))
+					verifyTypeStack(BINARY_OP, op);
 				return true;
 			}
 		}
@@ -852,23 +914,41 @@ public class Grammar implements Terminal
 	
 	private boolean grammarOpRel()
 	{
+		String op = "";
 		while(true)
 		{
 			if(!grammarOpSR()) return false;
 			nextToken();
 			if(checkTerminalValue(TERMINAL_OP_LESS_THAN, PRIORITY_LOW, G_OP_REL))
+			{
+				op = TERMINAL_OP_LESS_THAN;
 				nextToken();
+			}
 			else if(checkTerminalValue(TERMINAL_OP_GREATER_THAN, PRIORITY_LOW, G_OP_REL))
+			{
+				op = TERMINAL_OP_GREATER_THAN;
 				nextToken();
+			}
 			else if(checkTerminalValue(TERMINAL_OP_LESS_OR_EQUAL_THAN, PRIORITY_LOW, G_OP_REL))
+			{
+				op = TERMINAL_OP_LESS_OR_EQUAL_THAN;
 				nextToken();
+			}
 			else if(checkTerminalValue(TERMINAL_OP_GREATER_OR_EQUAL_THAN, PRIORITY_LOW, G_OP_REL))
+			{
+				op = TERMINAL_OP_GREATER_OR_EQUAL_THAN;
 				nextToken();
+			}
 			else if(checkTerminalValue(TERMINAL_OP_DIFFERENT, PRIORITY_LOW, G_OP_REL))
+			{
+				op = TERMINAL_OP_DIFFERENT;
 				nextToken();
+			}
 			else
 			{
 				pushToken();
+				if(!op.equals(""))
+					verifyTypeStack(BINARY_OP, op);
 				return true;
 			}
 		}
@@ -876,10 +956,63 @@ public class Grammar implements Terminal
 	
 	private boolean grammarOpNo()
 	{
+		String op = "";
 		if(checkTerminalValue(TERMINAL_NO, PRIORITY_LOW, G_OP_NO))
+		{
+			op = TERMINAL_NO;
 			nextToken();
-		if(grammarOpRel()) return true;
+		}
+		if(grammarOpRel())
+		{
+			if(!op.equals(""))
+				verifyTypeStack(UNARY_OP, op);
+			return true;
+		}
 		return false;
+	}
+	
+	private boolean grammarOpy()
+	{
+		String op = "";
+		while(true)
+		{
+			if(!grammarOpNo()) return false;
+			nextToken();
+			if(checkTerminalValue(TERMINAL_Y, PRIORITY_LOW, G_OP_Y))
+			{
+				op = TERMINAL_Y;
+				nextToken();
+			}
+			else
+			{
+				pushToken();
+				if(!op.equals(""))
+					verifyTypeStack(BINARY_OP, op);
+				return true;
+			}
+		}
+	}
+	
+	private boolean grammarExpr()
+	{
+		String op = "";
+		while(true)
+		{
+			if(!grammarOpy()) return false;
+			nextToken();
+			if(checkTerminalValue(TERMINAL_O, PRIORITY_LOW, G_EXPR))
+			{
+				op = TERMINAL_O;
+				nextToken();
+			}
+			else
+			{
+				pushToken();
+				if(!op.equals(""))
+					verifyTypeStack(BINARY_OP, op);
+				return true;
+			}
+		}
 	}
 	
 	private boolean grammarLFunc(int priority)
@@ -948,6 +1081,7 @@ public class Grammar implements Terminal
 		
 		nextToken();
 		if(!grammarExpr()) return false;
+		//checkTypeFromTypeStack(DataType.LOGICO);
 		
 		nextToken();
 		if(!checkTerminalValue(TERMINAL_RIGHT_PAR, PRIORITY_HIGH, G_SI)) return false;
@@ -1250,15 +1384,9 @@ public class Grammar implements Terminal
 			
 			case SymbolTableElement.CLASS_CONSTANTE:
 			case SymbolTableElement.CLASS_VARIABLE:
-				if(!isLocalDeclaration)
+			case SymbolTableElement.CLASS_LOCAL:
 					addElementToSymbolTable(eName, eClass, eType, false, new ArrayList<Integer>(),
 							eValue, eLine);
-				else
-				{
-					localVariables.add(new SymbolTableElement(eName, eClass, eType, false, 
-							new ArrayList<Integer>(), eValue, eLine));
-					hasLocalDeclaration = true;
-				}
 				break;
 				
 			case SymbolTableElement.CLASS_TIPO:
@@ -1277,7 +1405,8 @@ public class Grammar implements Terminal
 				}
 				addElementToSymbolTable(eName, eClass, eType, false, new ArrayList<Integer>(), 
 						"", eLine);
-				if(hasLocalDeclaration) prepareLocalVariables();
+				localFunctionName = eName;
+
 				clearParameters();
 				break;
 				
@@ -1294,31 +1423,6 @@ public class Grammar implements Terminal
 	{
 		addElementToSymbolTable(p.getId() + "$" + eName, SymbolTableElement.CLASS_PARAMETRO, 
 				p.getDataType(), false, new ArrayList<Integer>(), "", p.getLineOfCode());
-	}
-	
-	/**
-	 * Prepares local variables to be inserted into the symbol table.
-	 */
-	private void prepareLocalVariables()
-	{
-		int size = localVariables.size();
-		for(int i = 0; i < size; i++)
-		{
-			SymbolTableElement e = localVariables.get(i);
-			addElementToSymbolTable(e.getName() + "$" + eName, SymbolTableElement.CLASS_LOCAL, 
-					e.getType(), e.isDimensioned(), e.getDim(), e.getValue(), e.getLine());
-		}
-		clearLocalVariables();
-	}
-	
-	/**
-	 * Clears the local variables buffers.
-	 */
-	private void clearLocalVariables()
-	{
-		isLocalDeclaration = false;
-		hasLocalDeclaration = false;
-		localVariables.clear();
 	}
 	
 	/**
@@ -1403,6 +1507,73 @@ public class Grammar implements Terminal
 			case G_ASIGNACION: return "asignacion"; 
 			default: return "ERROR";
 		}
+	}
+	
+	/**
+	 * Gets the result from the operation and stores it in the type stack.
+	 * @param arity Operator's arity.
+	 * @param operator
+	 */
+	private void verifyTypeStack(int arity, String operator)
+	{
+		switch(arity)
+		{
+			case UNARY_OP:
+			{	
+				String operand = typeStack.pop();
+				String operation = operator + operand;
+				typeStack.push(getOperationResult(operation));
+				break;
+			}
+			case BINARY_OP:
+			{
+				String operand2 = typeStack.pop();
+				String operand1 = typeStack.pop();
+				String operation = operand1 + operator + operand2;
+				typeStack.push(getOperationResult(operation));
+				break;
+			}
+			default:
+				parser.addSemanticError(Error.semanticFreeError(parser.getLineOfCode(),
+						"No arity defined for this operator."));
+		}
+	}
+	
+	/**
+	 * Gets the result of an operation from the OperationResult interface.
+	 * @param operation
+	 * @return
+	 */
+	private String getOperationResult(String operation)
+	{
+		int size = OPERATION.length;
+		for(int i = 0; i < size; i++)
+		{
+			if(operation.equals(OPERATION[i]))
+				return RESULT[i];
+		}
+		
+		parser.addSemanticError(Error.semanticFreeError(parser.getLineOfCode(),
+				"Conflict in operation types: " + operation));
+		return DataType.UNDEFINED;
+	}
+	
+	private boolean checkTypeFromTypeStack(String dataType)
+	{
+		if(!typeStack.isEmpty())
+		{
+			String type = typeStack.pop();
+			if(type.equals(dataType))
+				return true;
+			parser.addSemanticError(Error.semanticFreeError(parser.getLineOfCode(), 
+					"Conflict in data type, expected: " + dataType + "\narrived: "
+					+ type));
+			return false;
+				
+		}
+		parser.addSemanticError(Error.semanticFreeError(parser.getLineOfCode(), 
+				"The stack of types is empty, can't resolve it."));
+		return false;
 	}
 	
 	/**

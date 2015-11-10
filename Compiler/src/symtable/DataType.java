@@ -1,5 +1,7 @@
 package symtable;
 
+import lexical.Token;
+
 /**
  * Class used to denote a data type as an string.
  * @author natafrank
@@ -18,6 +20,18 @@ public class DataType
 	public final static String LAMBDA = "0";
 	
 	private String dataType;
+	
+	public final static String getDataTypeByTokenTag(int tag)
+	{
+		switch(tag)
+		{
+			case Token.CONSTANT_ENTERO: return ENTERO;
+			case Token.CONSTANT_DECIMAL: return DECIMAL;
+			case Token.CONSTANT_ALFANUM: return ALFANUMERICO;
+			case Token.CONSTANT_LOGICO: return LOGICO;
+			default: return UNDEFINED;
+		}
+	}
 	
 	public DataType()
 	{

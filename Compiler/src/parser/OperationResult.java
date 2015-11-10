@@ -13,6 +13,11 @@ public interface OperationResult extends Terminal
 	final static String[] OPERATION = 
 	{
 		DataType.ALFANUMERICO + TERMINAL_OP_ADD + DataType.ALFANUMERICO,
+		//Not sure about this results. CHECK
+		DataType.ENTERO + TERMINAL_OP_ADD + DataType.ALFANUMERICO,
+		DataType.ALFANUMERICO + TERMINAL_OP_ADD + DataType.ENTERO,
+		DataType.DECIMAL + TERMINAL_OP_ADD + DataType.ALFANUMERICO,
+		DataType.ALFANUMERICO + TERMINAL_OP_ADD + DataType.DECIMAL,
 		
 		DataType.ENTERO + TERMINAL_OP_ADD + DataType.ENTERO,
 		DataType.ENTERO + TERMINAL_OP_ADD + DataType.DECIMAL,
@@ -78,6 +83,11 @@ public interface OperationResult extends Terminal
 	
 	final static String[] RESULT =
 	{
+		DataType.ALFANUMERICO,
+		//To check.
+		DataType.ALFANUMERICO,
+		DataType.ALFANUMERICO,
+		DataType.ALFANUMERICO,
 		DataType.ALFANUMERICO,
 		
 		DataType.ENTERO,
