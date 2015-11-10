@@ -40,8 +40,6 @@ public class Grammar implements OperationResult
 	 * or procedure.
 	 */
 	private boolean isLocalDeclaration;
-	private boolean hasLocalDeclaration;
-	private ArrayList<SymbolTableElement> localVariables;
 	private String localFunctionName;
 	
 	/**
@@ -101,8 +99,7 @@ public class Grammar implements OperationResult
 		hasParameters = false;
 		parameters = new ArrayList<Parameter>();
 		isLocalDeclaration = false;
-		hasLocalDeclaration = false;
-		localVariables = new ArrayList<SymbolTableElement>();
+
 		typeStack = new Stack<String>();
 	}
 	
@@ -1081,7 +1078,7 @@ public class Grammar implements OperationResult
 		
 		nextToken();
 		if(!grammarExpr()) return false;
-		//checkTypeFromTypeStack(DataType.LOGICO);
+		checkTypeFromTypeStack(DataType.LOGICO);
 		
 		nextToken();
 		if(!checkTerminalValue(TERMINAL_RIGHT_PAR, PRIORITY_HIGH, G_SI)) return false;
