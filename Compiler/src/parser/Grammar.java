@@ -41,6 +41,11 @@ public class Grammar implements OperationResult
 	 */
 	private boolean isLocalDeclaration;
 	private String localFunctionName;
+	private boolean hasExpression;
+	
+	private final static String FUNCTION = "F";
+	private final static String PROCEDURE = "P";
+	private String functionProcedure = "";
 	
 	/**
 	 * Buffers for the operation results.
@@ -465,6 +470,7 @@ public class Grammar implements OperationResult
 	private boolean grammarFuncion()
 	{
 		isLocalDeclaration = true;
+		functionProcedure = FUNCTION;
 		nextToken();
 		DataType dataType = new DataType();
 		if(grammarTipo(PRIORITY_HIGH, dataType))
@@ -560,6 +566,7 @@ public class Grammar implements OperationResult
 	private boolean grammarProcedimiento()
 	{
 		isLocalDeclaration = true;
+		functionProcedure = PROCEDURE;
 		nextToken();
 		if(!checkTerminalTag(Token.IDENTIFIER, PRIORITY_HIGH, G_PROCEDIMIENTO)) return false;
 		eName = value;
@@ -635,7 +642,7 @@ public class Grammar implements OperationResult
 					nextToken();
 					if(checkTerminalValue(TERMINAL_SEMICOLON, PRIORITY_LOW, G_STATEMENT))
 						nextToken();
-					else return;
+					else continue;
 				}
 				else return;
 			}
@@ -776,6 +783,7 @@ public class Grammar implements OperationResult
 	{
 		if(checkTerminalTag(Token.IDENTIFIER, PRIORITY_LOW, G_TERMINO))
 		{
+			hasExpression = true;
 			String id = value;
 			nextToken();
 			if(checkTerminalValue(TERMINAL_LEFT_BRAC, PRIORITY_LOW, G_TERMINO))
@@ -793,12 +801,14 @@ public class Grammar implements OperationResult
 		}
 		else if(grammarLiteral(PRIORITY_LOW))
 		{
+			hasExpression = true;
 			if(tag != Token.IDENTIFIER)
 				typeStack.push(DataType.getDataTypeByTokenTag(tag));
 			return true;
 		}
 		else if(checkTerminalValue(TERMINAL_LEFT_PAR, PRIORITY_HIGH, G_TERMINO))
 		{
+			hasExpression = true;
 			nextToken();
 			if(!grammarExpr()) return false;
 			nextToken();
@@ -1068,9 +1078,24 @@ public class Grammar implements OperationResult
 		if(!isLocalDeclaration)
 			parser.addSemanticError(Error.semanticFreeError(parser.getLineOfCode(), "Statement "
 					+ "<regresa> can only be inside a function or procedure."));
+		hasExpression = false;
 		nextToken();
-		if(!grammarExpr())
-			pushToken();
+		if(!checkTerminalValue(TERMINAL_SEMICOLON, PRIORITY_LOW, G_TERMINO))
+		{
+			if(!grammarExpr())
+				pushToken();
+		}
+		if(hasExpression)
+			if(functionProcedure.equals(FUNCTION))
+				;
+			else
+				parser.addSemanticError(Error.semanticFreeError(parser.getLineOfCode(), 
+						"<regresa> statement inside a procedure can't contain an expression." ));
+		else
+			if(functionProcedure.equals(FUNCTION))
+				parser.addSemanticError(Error.semanticFreeError(parser.getLineOfCode(), 
+						"<regresa> statement inside a function must contain an expression." ));
+				
 		return true;
 	}
 	
