@@ -46,6 +46,7 @@ public class Grammar implements OperationResult
 	private final static String FUNCTION = "F";
 	private final static String PROCEDURE = "P";
 	private String functionProcedure = "";
+	private boolean hasReturn;
 	
 	/**
 	 * Buffers for the operation results.
@@ -470,6 +471,7 @@ public class Grammar implements OperationResult
 	private boolean grammarFuncion()
 	{
 		isLocalDeclaration = true;
+		hasReturn = false;
 		functionProcedure = FUNCTION;
 		nextToken();
 		DataType dataType = new DataType();
@@ -524,6 +526,11 @@ public class Grammar implements OperationResult
 			
 			nextToken();
 			if(!checkTerminalValue(TERMINAL_SEMICOLON, PRIORITY_HIGH, G_FUNCION)) return false;
+			
+			if(!hasReturn)
+				parser.addSemanticError(Error.semanticFreeError(parser
+						.getElementByName(localFunctionName).getLine(), 
+						"In function: " + localFunctionName + " <return> statement missing."));
 			
 			localFunctionName = "";
 			isLocalDeclaration = false;
@@ -1075,6 +1082,7 @@ public class Grammar implements OperationResult
 	
 	private boolean grammarRegresa()
 	{
+		hasReturn = true;
 		if(!isLocalDeclaration)
 			parser.addSemanticError(Error.semanticFreeError(parser.getLineOfCode(), "Statement "
 					+ "<regresa> can only be inside a function or procedure."));
