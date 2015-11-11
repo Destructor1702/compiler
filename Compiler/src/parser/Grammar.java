@@ -1087,7 +1087,7 @@ public class Grammar implements OperationResult
 		}
 		if(hasExpression)
 			if(functionProcedure.equals(FUNCTION))
-				;
+				checkTypeFromTypeStack(parser.getElementByName(localFunctionName).getType());
 			else
 				parser.addSemanticError(Error.semanticFreeError(parser.getLineOfCode(), 
 						"<regresa> statement inside a procedure can't contain an expression." ));
