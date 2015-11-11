@@ -23,7 +23,6 @@ programa TeTruena
 			fin de si;
 		fin de FacRec;
 
-
 		funcion alfanumerico Concat(alfanumerico a, b)
 		inicio
 			regresa a + " " + b;

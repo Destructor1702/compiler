@@ -1065,6 +1065,9 @@ public class Grammar implements OperationResult
 	
 	private boolean grammarRegresa()
 	{
+		if(!isLocalDeclaration)
+			parser.addSemanticError(Error.semanticFreeError(parser.getLineOfCode(), "Statement "
+					+ "<regresa> can only be inside a function or procedure."));
 		nextToken();
 		if(!grammarExpr())
 			pushToken();
