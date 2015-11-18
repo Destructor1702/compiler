@@ -172,7 +172,7 @@ public class Grammar implements OperationResult
 			{
 				nextToken();
 				if(checkTerminalValue(TERMINAL_DECLARA, PRIORITY_HIGH, G_PROGAMA)) 
-					grammarFuncProc();
+					if(!grammarFuncProc()) return;
 			}
 		}
 		checkTerminalValue(TERMINAL_PRINCIPAL, PRIORITY_HIGH, G_PROGAMA);
@@ -499,6 +499,7 @@ public class Grammar implements OperationResult
 				}
 				else return false;
 			}
+			else nextToken();
 			eClass = SymbolTableElement.CLASS_FUNCION;
 			prepareElement();
 			if(grammarTipo(PRIORITY_LOW))
@@ -596,6 +597,7 @@ public class Grammar implements OperationResult
 			}
 			else return false;
 		}
+		else nextToken();
 		eClass = SymbolTableElement.CLASS_PROCEDIMIENTO;
 		prepareElement();
 		if(grammarTipo(PRIORITY_LOW))
@@ -801,10 +803,22 @@ public class Grammar implements OperationResult
 			else
 			{
 				pushToken();
+				SymbolTableElement e;
 				if(!localFunctionName.equals(""))
-					id = id + "$" + localFunctionName;
-				typeStack.push(parser.getElementByName(id).getType());
-				return true;
+				{
+					e = parser.getElementByName(id + "$" + localFunctionName);
+					if(e == null)
+						e = parser.getElementByName(id);
+				}
+				else e = parser.getElementByName(id);
+					
+				if(e != null)
+				{
+					typeStack.push(e.getType());
+					return true;
+				}
+				parser.addSemanticError("Variable: " + id + " at line: "
+						+ parser.getLineOfCode() + " hasn't been defined yet.");
 			}
 		}
 		else if(grammarLiteral(PRIORITY_LOW))
