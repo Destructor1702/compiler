@@ -124,6 +124,7 @@ public class Grammar implements OperationResult
 	 */
 	private void grammarPrograma()
 	{	
+		String nameAux;
 		nextToken();
 		if(!checkTerminalValue(TERMINAL_PROGRAMA, PRIORITY_LOW, G_PROGAMA)) grammarLibraries();
 		checkTerminalValue(TERMINAL_PROGRAMA, PRIORITY_HIGH, G_PROGAMA);
@@ -131,6 +132,7 @@ public class Grammar implements OperationResult
 		nextToken();
 		checkTerminalTag(Token.IDENTIFIER, PRIORITY_HIGH, G_PROGAMA);
 		eName = value;
+		nameAux = value;
 		eLine = parser.getLineOfCode();
 		eClass = SymbolTableElement.CLASS_PROGRAMA;
 		prepareElement();
@@ -198,7 +200,11 @@ public class Grammar implements OperationResult
 		
 		nextToken();						
 		checkTerminalTag(Token.IDENTIFIER, PRIORITY_HIGH, G_PROGAMA);
-
+		if(!nameAux.equals(value))
+			parser.addSemanticError("Wrong identifier for main program at line " + 
+					parser.getLineOfCode() + "\nexpected: " + nameAux + "\narrived: "
+					+ value);
+		
 		nextToken();
 		checkTerminalValue(TERMINAL_DOT, PRIORITY_HIGH, G_PROGAMA);
 		
@@ -471,6 +477,7 @@ public class Grammar implements OperationResult
 	
 	private boolean grammarFuncion()
 	{
+		String nameAux;
 		isLocalDeclaration = true;
 		hasReturn = false;
 		functionProcedure = FUNCTION;
@@ -482,6 +489,7 @@ public class Grammar implements OperationResult
 			nextToken();
 			if(!checkTerminalTag(Token.IDENTIFIER, PRIORITY_HIGH, G_FUNCION)) return false;
 			eName = value;
+			nameAux = value;
 			eLine = parser.getLineOfCode();
 			
 			nextToken();
@@ -525,6 +533,10 @@ public class Grammar implements OperationResult
 			
 			nextToken();
 			if(!checkTerminalTag(Token.IDENTIFIER, PRIORITY_HIGH, G_FUNCION)) return false;
+			if(!nameAux.equals(value))
+				parser.addSemanticError("Wrong identifier for function at line " + 
+						parser.getLineOfCode() + "\nexpected: " + nameAux + "\narrived: "
+						+ value);
 			
 			nextToken();
 			if(!checkTerminalValue(TERMINAL_SEMICOLON, PRIORITY_HIGH, G_FUNCION)) return false;
@@ -574,11 +586,13 @@ public class Grammar implements OperationResult
 	
 	private boolean grammarProcedimiento()
 	{
+		String nameAux;
 		isLocalDeclaration = true;
 		functionProcedure = PROCEDURE;
 		nextToken();
 		if(!checkTerminalTag(Token.IDENTIFIER, PRIORITY_HIGH, G_PROCEDIMIENTO)) return false;
 		eName = value;
+		nameAux = value;
 		eLine = parser.getLineOfCode();
 		eType = DataType.UNDEFINED;
 		
@@ -623,6 +637,10 @@ public class Grammar implements OperationResult
 		
 		nextToken();
 		if(!checkTerminalTag(Token.IDENTIFIER, PRIORITY_HIGH, G_PROCEDIMIENTO)) return false;
+		if(!nameAux.equals(value))
+			parser.addSemanticError("Wrong identifier for procedure at line " + 
+					parser.getLineOfCode() + "\nexpected: " + nameAux + "\narrived: "
+					+ value);
 		
 		nextToken();
 		if(!checkTerminalValue(TERMINAL_SEMICOLON, PRIORITY_HIGH, G_PROCEDIMIENTO)) return false;

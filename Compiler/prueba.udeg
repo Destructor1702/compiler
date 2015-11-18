@@ -63,7 +63,7 @@ programa TeTruena
 		inicio
 			regresa a > b;
 		fin de Compara;
-		
+
 		principal
 		inicio
 			despliega("Factorial de: ");
