@@ -26,6 +26,7 @@ public class SymbolTableElement
 	public final static int CLASS_LOCAL = 7;
 	public final static int CLASS_LIBRERIA = 8;
 	public final static int CLASS_PROGRAMA = 9;
+	public final static int CLASS_DECLARATION_TIPO = 10;
 	
 	/**
 	 * Data Types.
@@ -87,6 +88,7 @@ public class SymbolTableElement
 			case CLASS_PROGRAMA: return "PROGRAMA";
 			case CLASS_TIPO: return "TIPO";
 			case CLASS_VARIABLE: return "VARIABLE";
+			case CLASS_DECLARATION_TIPO: return "DECLARACION TIPO";
 			
 			default: return "ERROR";
 		}

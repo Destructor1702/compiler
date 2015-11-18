@@ -346,6 +346,8 @@ public class Grammar implements OperationResult
 								}
 								else
 									eClass = SymbolTableElement.CLASS_VARIABLE;
+								if(dataType.isArray())
+									eClass = SymbolTableElement.CLASS_DECLARATION_TIPO;
 								prepareElement();
 								nextToken();
 								if(!checkTerminalValue(TERMINAL_SEMICOLON, PRIORITY_LOW, 
@@ -372,6 +374,8 @@ public class Grammar implements OperationResult
 						}
 						else
 							eClass = SymbolTableElement.CLASS_VARIABLE;
+						if(dataType.isArray())
+							eClass = SymbolTableElement.CLASS_DECLARATION_TIPO;
 						prepareElement();
 					}
 				}
@@ -386,6 +390,8 @@ public class Grammar implements OperationResult
 					}
 					else
 						eClass = SymbolTableElement.CLASS_VARIABLE;
+					if(dataType.isArray())
+						eClass = SymbolTableElement.CLASS_DECLARATION_TIPO;
 					prepareElement();
 					return true;
 				}
@@ -770,11 +776,21 @@ public class Grammar implements OperationResult
 	
 	private boolean grammarLee()
 	{
+		boolean isDim = false;
+		String auxName;
 		nextToken();
 		if(!checkTerminalValue(TERMINAL_LEFT_PAR, PRIORITY_HIGH, G_LEE)) return false;
 		
 		nextToken();
 		if(!checkTerminalTag(Token.IDENTIFIER, PRIORITY_HIGH, G_LEE)) return false;
+		auxName = value;
+		SymbolTableElement e = parser.getElementByName(value);
+		if(e == null)
+		{
+			parser.addSemanticError("Variable: " + value + " at line: "
+					+ parser.getLineOfCode() + " hasn't been defined yet.");
+			return false;
+		}
 		
 		nextToken();
 		if(!checkTerminalValue(TERMINAL_RIGHT_PAR, PRIORITY_LOW, G_LEE))
@@ -782,9 +798,18 @@ public class Grammar implements OperationResult
 			if(grammarUdim())
 			{
 				nextToken();
-				return true;
+				isDim = true;
 			}
-			return false;
+			else return false;
+		}
+		if(!isDim)
+		{
+			if(e.isDimensioned())
+			{
+				parser.addSemanticError("Can't access to variable '" + auxName + "' at line: "
+						+ parser.getLineOfCode() + " it is dimensioned.");
+				return false;
+			}
 		}
 		return true;
 	}
@@ -815,7 +840,25 @@ public class Grammar implements OperationResult
 			String id = value;
 			nextToken();
 			if(checkTerminalValue(TERMINAL_LEFT_BRAC, PRIORITY_LOW, G_TERMINO))
+			{
+				SymbolTableElement e = parser.getElementByName(id);
+				if(e != null)
+				{
+					if(!e.isDimensioned())
+					{
+						parser.addSemanticError("Variable: " + id + " at line: "
+								+ parser.getLineOfCode() + " is not dimensioned.");
+						return false;
+					}
+				}
+				else
+				{	
+					parser.addSemanticError("Variable: " + id + " at line: "
+							+ parser.getLineOfCode() + " hasn't been defined yet.");
+					return false;
+				}
 				return grammarUdim();
+			}
 			else if(checkTerminalValue(TERMINAL_LEFT_PAR, PRIORITY_LOW, G_TERMINO))
 				return grammarLFunc(PRIORITY_HIGH);
 			else
@@ -833,10 +876,17 @@ public class Grammar implements OperationResult
 				if(e != null)
 				{
 					typeStack.push(e.getType());
+					if(e.isDimensioned())
+					{
+						parser.addSemanticError("Can't access to variable '" + id + "' at line: "
+								+ parser.getLineOfCode() + " it is dimensioned.");
+						return false;
+					}
 					return true;
 				}
-				parser.addSemanticError("Variable: " + id + " at line: "
+				parser.addSemanticError("Variable '" + id + "' at line: "
 						+ parser.getLineOfCode() + " hasn't been defined yet.");
+				return false;
 			}
 		}
 		else if(grammarLiteral(PRIORITY_LOW))
@@ -1202,6 +1252,11 @@ public class Grammar implements OperationResult
 		else if(value.equals(TERMINAL_DECIMAL)) type.setDataType(DataType.DECIMAL);
 		else if(value.equals(TERMINAL_ALFANUMERICO)) type.setDataType(DataType.ALFANUMERICO);
 		else if(value.equals(TERMINAL_LOGICO)) type.setDataType(DataType.LOGICO);
+		else if(tag == Token.IDENTIFIER)
+		{
+			type.setDataType(value);
+			type.setIsArray(true);
+		}
 		return true;
 	}
 
@@ -1457,6 +1512,18 @@ public class Grammar implements OperationResult
 				
 			case SymbolTableElement.CLASS_TIPO:
 				addElementToSymbolTable(eName, eClass, eType, true, eDim, "", eLine);
+				break;
+			case SymbolTableElement.CLASS_DECLARATION_TIPO:
+				SymbolTableElement array = parser.getElementByName(eType);
+				if(array != null)
+				{
+					addElementToSymbolTable(eName, SymbolTableElement.CLASS_TIPO,
+							array.getType(), true, new ArrayList<Integer>(array.getDim()),
+							"", eLine);
+				}
+				else
+					parser.addSemanticError(Error.semanticFreeError(eLine, 
+							"The array structure for " + eType + " hasn't been declared yet."));
 				break;
 				
 			case SymbolTableElement.CLASS_PROCEDIMIENTO:

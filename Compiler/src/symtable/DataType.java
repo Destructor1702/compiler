@@ -20,6 +20,7 @@ public class DataType
 	public final static String LAMBDA = "0";
 	
 	private String dataType;
+	private boolean isArray;
 	
 	public final static String getDataTypeByTokenTag(int tag)
 	{
@@ -45,6 +46,7 @@ public class DataType
 	public DataType()
 	{
 		dataType = UNDEFINED;
+		isArray = false;
 	}
 	
 	public void setDataType(String dataType)
@@ -55,5 +57,15 @@ public class DataType
 	public String getDataType()
 	{
 		return dataType;
+	}
+	
+	public boolean isArray()
+	{
+		return isArray;
+	}
+	
+	public void setIsArray(boolean isArray)
+	{
+		this.isArray = isArray;
 	}
 }
