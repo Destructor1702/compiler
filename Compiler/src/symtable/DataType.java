@@ -33,6 +33,15 @@ public class DataType
 		}
 	}
 	
+	public final static String getDataTypeName(String dataType)
+	{
+		if(dataType.equals(ALFANUMERICO)) return Token.getTagString(Token.CONSTANT_ALFANUM);
+		else if(dataType.equals(ENTERO)) return Token.getTagString(Token.CONSTANT_ENTERO);
+		else if(dataType.equals(DECIMAL)) return Token.getTagString(Token.CONSTANT_DECIMAL);
+		else if(dataType.equals(LOGICO)) return Token.getTagString(Token.CONSTANT_LOGICO);
+		return "UNDEFINED";
+	}
+	
 	public DataType()
 	{
 		dataType = UNDEFINED;

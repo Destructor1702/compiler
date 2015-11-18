@@ -276,7 +276,8 @@ public class Grammar implements OperationResult
 				if(grammarLiteral(PRIORITY_HIGH))
 				{
 					eValue = value;
-					checkDataTypeDeclaration(eType, tag, parser.getLineOfCode());
+					if(!checkDataTypeDeclaration(eType, tag, parser.getLineOfCode()))
+						return false;
 					nextToken();
 					if(isLocalDeclaration)
 					{
@@ -1470,28 +1471,34 @@ public class Grammar implements OperationResult
 		eDim.clear();
 	}
 	
-	private void checkDataTypeDeclaration(String dataType, int tag, int line)
+	private boolean checkDataTypeDeclaration(String dataType, int tag, int line)
 	{
 		switch(tag)
 		{
 			case Token.CONSTANT_ENTERO:
-				if(!dataType.equals(DataType.ENTERO))
-					parser.addSemanticError(Error.semanticDataType(line, Token.getTagString(tag)));
-				break;
+				if(dataType.equals(DataType.ENTERO)) return true;
+					parser.addSemanticError(Error.semanticDataType(line, 
+							DataType.getDataTypeName(dataType)));
+				return false;
 			case Token.CONSTANT_DECIMAL:
-				if(!dataType.equals(DataType.DECIMAL))
-					parser.addSemanticError(Error.semanticDataType(line, Token.getTagString(tag)));
-				break;
+				if(dataType.equals(DataType.DECIMAL)) return true;
+					parser.addSemanticError(Error.semanticDataType(line, 
+							DataType.getDataTypeName(dataType)));
+				return false;
 			case Token.CONSTANT_LOGICO:
-				if(!dataType.equals(DataType.LOGICO))
-					parser.addSemanticError(Error.semanticDataType(line, Token.getTagString(tag)));
-				break;
+				if(dataType.equals(DataType.LOGICO)) return true;
+					parser.addSemanticError(Error.semanticDataType(line, 
+							DataType.getDataTypeName(dataType)));
+				return false;
 			case Token.CONSTANT_ALFANUM:
-				if(!dataType.equals(DataType.ALFANUMERICO))
-					parser.addSemanticError(Error.semanticDataType(line, Token.getTagString(tag)));
-				break;
+				if(dataType.equals(DataType.ALFANUMERICO)) return true;
+					parser.addSemanticError(Error.semanticDataType(line, 
+							DataType.getDataTypeName(dataType)));
+				return false;
 			default:
-				parser.addSemanticError(Error.semanticDataType(line, Token.getTagString(tag)));
+					parser.addSemanticError(Error.semanticDataType(line, 
+							DataType.getDataTypeName(dataType)));
+				return false;
 		}
 	}
 	

@@ -17,7 +17,7 @@ programa TeTruena
 		funcion entero FacRec( entero n )
 		inicio
 			si ( n < 2 )
-				regresa 1;
+				regresa 2;
 			sino
 				regresa n * FacRec( n - 1);
 			fin de si;
@@ -63,7 +63,7 @@ programa TeTruena
 		inicio
 			regresa a > b;
 		fin de Compara;
-
+		
 		principal
 		inicio
 			despliega("Factorial de: ");
