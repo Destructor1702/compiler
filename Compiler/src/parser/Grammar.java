@@ -739,7 +739,13 @@ public class Grammar implements OperationResult
 		if(!checkTerminalValue(TERMINAL_ASIGNATION, PRIORITY_HIGH, G_ASIGNACION)) return false;
 		
 		nextToken();
-		return grammarExpr();
+		if(grammarExpr())
+		{
+			if(checkTypeFromTypeStack(e.getType()))
+				return true;
+			return false;
+		}
+		return false;
 	}
 	
 	private boolean grammarCiclo()
@@ -755,12 +761,14 @@ public class Grammar implements OperationResult
 		
 		nextToken();
 		if(!grammarExpr()) return false;
+		checkTypeFromTypeStack(DataType.ENTERO);
 		
 		nextToken();
 		if(!checkTerminalValue(TERMINAL_HASTA, PRIORITY_HIGH, G_CICLO)) return false;
 		
 		nextToken();
 		if(!grammarExpr()) return false;
+		checkTypeFromTypeStack(DataType.ENTERO);
 		
 		nextToken();
 		if(!checkTerminalValue(TERMINAL_FIN, PRIORITY_LOW, G_CICLO))
@@ -769,6 +777,7 @@ public class Grammar implements OperationResult
 			{
 				nextToken();
 				if(!grammarExpr()) return false;
+				checkTypeFromTypeStack(DataType.ENTERO);
 				nextToken();
 			}
 		}
