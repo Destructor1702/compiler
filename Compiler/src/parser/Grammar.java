@@ -7,6 +7,7 @@ import lexical.Token;
 import symtable.DataType;
 import symtable.SymbolTableElement;
 import error.Error;
+import extra.Numeric;
 
 public class Grammar implements OperationResult
 {
@@ -54,6 +55,11 @@ public class Grammar implements OperationResult
 	private final static int UNARY_OP = 1;
 	private final static int BINARY_OP = 2;
 	private Stack<String> typeStack;
+	
+	/**
+	 * Buffer for use of dimensions.
+	 */
+	private ArrayList<String> dimInUse;
 	
 	/**
 	 * Index for grammars.
@@ -105,7 +111,7 @@ public class Grammar implements OperationResult
 		hasParameters = false;
 		parameters = new ArrayList<Parameter>();
 		isLocalDeclaration = false;
-
+		dimInUse = new ArrayList<String>();
 		typeStack = new Stack<String>();
 	}
 	
@@ -265,7 +271,6 @@ public class Grammar implements OperationResult
 		if(grammarTipo(PRIORITY_HIGH, dataType))
 		{
 			eType = dataType.getDataType();
-			//Controls the cycle to declare more than one constant of the same type.
 			boolean moreConstants = false;
 			do
 			{
@@ -697,24 +702,40 @@ public class Grammar implements OperationResult
 		else if(checkTerminalValue(TERMINAL_SI, PRIORITY_LOW, G_COMMAND)) return grammarSi();
 		else if(tag == Token.IDENTIFIER)
 		{
+			String nameAux = value;
 			nextToken();
 			if(checkTerminalValue(TERMINAL_LEFT_PAR, PRIORITY_LOW, G_COMMAND)) 
 				return grammarLFunc(PRIORITY_HIGH);
 			else
-				return grammarAsignacion();
+				return grammarAsignacion(nameAux);
 		}
 		
 		return false;
 	}
 	
-	private boolean grammarAsignacion()
+	private boolean grammarAsignacion(String name)
 	{
+		SymbolTableElement e = getElementForCall(name);
+		if(e == null) return false;
+		boolean hasDim = false;
 		if(checkTerminalValue(TERMINAL_LEFT_BRAC, PRIORITY_LOW, G_ASIGNACION))
 		{
-			if(!grammarUdim()) return false;
+			if(!e.isDimensioned())
+			{
+				parser.addSemanticError("At grammar 'asignacion' variable '" + name + "' at line: "
+						+ parser.getLineOfCode() + " shouldn't be dimensioned.");
+				return false;
+			}
+			if(!grammarUdim(e)) return false;
 			nextToken();
+			hasDim = true;
 		}
-		
+		if(e.isDimensioned() && !hasDim)
+		{
+			parser.addSemanticError("At grammar 'asignacion' variable '" + name + "' at line: "
+					+ parser.getLineOfCode() + " has to be dimensioned.");
+			return false;
+		}
 		if(!checkTerminalValue(TERMINAL_ASIGNATION, PRIORITY_HIGH, G_ASIGNACION)) return false;
 		
 		nextToken();
@@ -725,18 +746,9 @@ public class Grammar implements OperationResult
 	{
 		nextToken();
 		if(!checkTerminalTag(Token.IDENTIFIER, PRIORITY_HIGH, G_CICLO)) return false;
-		eName = value;
-		eType = DataType.ENTERO;
-		eLine = parser.getLineOfCode();
-		eValue = "1"; //hardcoded value.
-		if(isLocalDeclaration)
-		{
-			eClass = SymbolTableElement.CLASS_LOCAL;
-			eName = eName + "$" + localFunctionName;
-		}
-		else
-			eClass = SymbolTableElement.CLASS_VARIABLE;
-		prepareElement();
+		SymbolTableElement e = getElementForCall(value);
+		if(e == null) return false;
+		e.setValue("1");//HARDCODED
 		
 		nextToken();
 		if(!checkTerminalValue(TERMINAL_EN, PRIORITY_HIGH, G_CICLO)) return false;
@@ -784,18 +796,13 @@ public class Grammar implements OperationResult
 		nextToken();
 		if(!checkTerminalTag(Token.IDENTIFIER, PRIORITY_HIGH, G_LEE)) return false;
 		auxName = value;
-		SymbolTableElement e = parser.getElementByName(value);
-		if(e == null)
-		{
-			parser.addSemanticError("Variable: " + value + " at line: "
-					+ parser.getLineOfCode() + " hasn't been defined yet.");
-			return false;
-		}
+		SymbolTableElement e = getElementForCall(auxName);
+		if(e == null) return false;
 		
 		nextToken();
 		if(!checkTerminalValue(TERMINAL_RIGHT_PAR, PRIORITY_LOW, G_LEE))
 		{
-			if(grammarUdim())
+			if(grammarUdim(e))
 			{
 				nextToken();
 				isDim = true;
@@ -814,21 +821,88 @@ public class Grammar implements OperationResult
 		return true;
 	}
 	
-	private boolean grammarUdim()
+	private boolean grammarUdim(SymbolTableElement e)
 	{
+		dimInUse.clear();
 		if(!checkTerminalValue(TERMINAL_LEFT_BRAC, PRIORITY_HIGH, G_UDIM)) return false;
 		
 		nextToken();
 		while(true)
 		{
 			if(!grammarExpr()) return false;
-			
 			nextToken();
 			if(!checkTerminalValue(TERMINAL_RIGHT_BRAC, PRIORITY_LOW, G_UDIM))
 			{
 				if(!checkTerminalValue(TERMINAL_COMA, PRIORITY_HIGH, G_UDIM)) return false;
+				nextToken();
 			}
-			else return true;
+			else
+			{
+				ArrayList<Integer> dimElement = e.getDim();
+				int dimElementUseSize = dimElement.size() / 2;
+				int dimInUseSize = dimInUse.size();
+				if(dimInUse.size() < dimElementUseSize)
+				{
+					parser.addSemanticError(Error.semanticFreeError(parser.getLineOfCode(),
+							"Not enough dimensions for variable '" + e.getName() + "'"
+									+ "\n Needed  : " + dimElementUseSize
+									+ "\n Received: " + dimInUseSize));
+					return false;
+				}
+				else if(dimInUseSize > dimElementUseSize)
+				{
+					parser.addSemanticError(Error.semanticFreeError(parser.getLineOfCode(),
+							"Too many dimensions for variable '" + e.getName() + "'"
+									+ "\n Needed  : " + dimElementUseSize
+									+ "\n Received: " + dimInUseSize));
+					return false;
+				}
+				else
+				{
+					for(int i = 0; i < dimInUseSize; i++)
+					{
+						String dimInUseAux = dimInUse.get(i);
+						SymbolTableElement eAux;
+						int dimAux;
+						if(!Numeric.isNumeric(dimInUseAux))
+						{
+							eAux = getElementForCall(dimInUseAux);
+							if(eAux == null)
+							{
+								parser.addSemanticError(Error.semanticFreeError(parser
+										.getLineOfCode(), "Can't get reference from '"
+										+ dimInUseAux + "' for dimensioned variable '"
+										+ e.getName() + "'"));
+								return false;
+							}
+							dimInUseAux = eAux.getValue();
+						}
+						try
+						{
+							dimAux = Integer.parseInt(dimInUseAux);
+							if(dimAux < dimElement.get(i) || dimAux > dimElement.get(i + 1))
+							{
+								parser.addSemanticError(Error.semanticFreeError(parser
+										.getLineOfCode(), "Array out of bounds for variable"
+												+ " '"+ e.getName() + "'\n"
+												+ "Arrived : [ " + dimAux + " ]\n"
+												+ "Expected: [ " + dimElement.get(i)
+												+ " ] [ " + dimElement.get(i + 1) + " ]"));
+								return false;
+							}
+						}
+						catch(NumberFormatException exception)
+						{
+							parser.addSemanticError(Error.semanticFreeError(parser
+									.getLineOfCode(), "Can't get reference from '"
+									+ dimInUseAux + "' for dimensioned variable '"
+									+ e.getName() + "'"));
+							return false;
+						}
+					}
+				}
+				return true;
+			}
 		}
 	}
 	
@@ -841,38 +915,25 @@ public class Grammar implements OperationResult
 			nextToken();
 			if(checkTerminalValue(TERMINAL_LEFT_BRAC, PRIORITY_LOW, G_TERMINO))
 			{
-				SymbolTableElement e = parser.getElementByName(id);
+				SymbolTableElement e = getElementForCall(id);
 				if(e != null)
 				{
 					if(!e.isDimensioned())
 					{
-						parser.addSemanticError("Variable: " + id + " at line: "
-								+ parser.getLineOfCode() + " is not dimensioned.");
+						parser.addSemanticError("At grammar 'termino' variable '" + id + 
+								"' at line: " + parser.getLineOfCode() + " is not dimensioned.");
 						return false;
 					}
 				}
-				else
-				{	
-					parser.addSemanticError("Variable: " + id + " at line: "
-							+ parser.getLineOfCode() + " hasn't been defined yet.");
-					return false;
-				}
-				return grammarUdim();
+				else return false;
+				return grammarUdim(e);
 			}
 			else if(checkTerminalValue(TERMINAL_LEFT_PAR, PRIORITY_LOW, G_TERMINO))
 				return grammarLFunc(PRIORITY_HIGH);
 			else
 			{
 				pushToken();
-				SymbolTableElement e;
-				if(!localFunctionName.equals(""))
-				{
-					e = parser.getElementByName(id + "$" + localFunctionName);
-					if(e == null)
-						e = parser.getElementByName(id);
-				}
-				else e = parser.getElementByName(id);
-					
+				SymbolTableElement e = getElementForCall(id);
 				if(e != null)
 				{
 					typeStack.push(e.getType());
@@ -882,10 +943,9 @@ public class Grammar implements OperationResult
 								+ parser.getLineOfCode() + " it is dimensioned.");
 						return false;
 					}
+					dimInUse.add(e.getName());
 					return true;
 				}
-				parser.addSemanticError("Variable '" + id + "' at line: "
-						+ parser.getLineOfCode() + " hasn't been defined yet.");
 				return false;
 			}
 		}
@@ -893,7 +953,10 @@ public class Grammar implements OperationResult
 		{
 			hasExpression = true;
 			if(tag != Token.IDENTIFIER)
+			{
 				typeStack.push(DataType.getDataTypeByTokenTag(tag));
+				dimInUse.add(value);
+			}
 			return true;
 		}
 		else if(checkTerminalValue(TERMINAL_LEFT_PAR, PRIORITY_HIGH, G_TERMINO))
@@ -1570,6 +1633,13 @@ public class Grammar implements OperationResult
 		eDim.clear();
 	}
 	
+	/**
+	 * Checks if a datatype matches with the tag provided.
+	 * @param dataType
+	 * @param tag
+	 * @param line
+	 * @return
+	 */
 	private boolean checkDataTypeDeclaration(String dataType, int tag, int line)
 	{
 		switch(tag)
@@ -1679,6 +1749,25 @@ public class Grammar implements OperationResult
 	}
 	
 	/**
+	 * Gets the element because of a call from a grammar.
+	 * @param name
+	 * @return element
+	 */
+	private SymbolTableElement getElementForCall(String name)
+	{
+		SymbolTableElement e = null;
+		//First check for local declaration.
+		if(isLocalDeclaration)
+			e = parser.getElementByName(name + "$" + localFunctionName);
+		if(e == null)
+			e = parser.getElementByName(name);
+		if(e == null)
+			parser.addSemanticError("Variable '" + name + "' at line: "
+					+ parser.getLineOfCode() + " hasn't been defined yet.");
+		return e;
+	}
+	
+	/**
 	 * Gets the result of an operation from the OperationResult interface.
 	 * @param operation
 	 * @return
@@ -1697,6 +1786,12 @@ public class Grammar implements OperationResult
 		return DataType.UNDEFINED;
 	}
 	
+	/**
+	 * Checks if the top of the stack matches with the data type provided and then pops it
+	 * from the stack.
+	 * @param dataType
+	 * @return
+	 */
 	private boolean checkTypeFromTypeStack(String dataType)
 	{
 		if(!typeStack.isEmpty())

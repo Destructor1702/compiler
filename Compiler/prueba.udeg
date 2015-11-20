@@ -6,7 +6,7 @@ programa TeTruena
 	
 	tipo entero Arre arreglo(1 hasta MAX);
 	
-	entero i, n;
+	entero i, n, j;
 	Arre vector;
 	decimal r, s;
 	alfanumerico alfa, beta;
@@ -16,6 +16,7 @@ programa TeTruena
 		// Factorial recursivo
 		funcion entero FacRec( entero n )
 		inicio
+			vector[2] := 2;
 			si ( n < 2 )
 				regresa 2;
 			sino
