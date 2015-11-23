@@ -48,6 +48,8 @@ public class Grammar implements OperationResult
 	private final static String PROCEDURE = "P";
 	private String functionProcedure = "";
 	private boolean hasReturn;
+	private String callingFP;
+	private boolean rightPartOfAsignation;
 	
 	/**
 	 * Buffers for the operation results.
@@ -113,6 +115,7 @@ public class Grammar implements OperationResult
 		isLocalDeclaration = false;
 		dimInUse = new ArrayList<String>();
 		typeStack = new Stack<String>();
+		rightPartOfAsignation = false;
 	}
 	
 	/**
@@ -705,7 +708,7 @@ public class Grammar implements OperationResult
 			String nameAux = value;
 			nextToken();
 			if(checkTerminalValue(TERMINAL_LEFT_PAR, PRIORITY_LOW, G_COMMAND)) 
-				return grammarLFunc(PRIORITY_HIGH);
+				return grammarLFunc(nameAux, PRIORITY_HIGH);
 			else
 				return grammarAsignacion(nameAux);
 		}
@@ -717,6 +720,12 @@ public class Grammar implements OperationResult
 	{
 		SymbolTableElement e = getElementForCall(name);
 		if(e == null) return false;
+		if(e.getElementClass() == SymbolTableElement.CLASS_CONSTANTE)
+		{
+			parser.addSemanticError(Error.semanticFreeError(parser.getLineOfCode(),
+					"Can't reasing a value to the constant '" + e.getName() + "'"));
+			return false;
+		}
 		boolean hasDim = false;
 		if(checkTerminalValue(TERMINAL_LEFT_BRAC, PRIORITY_LOW, G_ASIGNACION))
 		{
@@ -738,9 +747,11 @@ public class Grammar implements OperationResult
 		}
 		if(!checkTerminalValue(TERMINAL_ASIGNATION, PRIORITY_HIGH, G_ASIGNACION)) return false;
 		
+		rightPartOfAsignation = true;
 		nextToken();
 		if(grammarExpr())
 		{
+			rightPartOfAsignation = false;
 			if(checkTypeFromTypeStack(e.getType()))
 				return true;
 			return false;
@@ -938,7 +949,7 @@ public class Grammar implements OperationResult
 				return grammarUdim(e);
 			}
 			else if(checkTerminalValue(TERMINAL_LEFT_PAR, PRIORITY_LOW, G_TERMINO))
-				return grammarLFunc(PRIORITY_HIGH);
+				return grammarLFunc(id, PRIORITY_HIGH);
 			else
 			{
 				pushToken();
@@ -1184,31 +1195,69 @@ public class Grammar implements OperationResult
 		}
 	}
 	
-	private boolean grammarLFunc(int priority)
-	{
+	private boolean grammarLFunc(String name, int priority)
+	{	
 		if(!checkTerminalValue(TERMINAL_LEFT_PAR, priority, G_L_FUNC)) return false;
 		
 		nextToken();
+		ArrayList<String> useOfParams = new ArrayList<String>();
 		if(!checkTerminalValue(TERMINAL_RIGHT_PAR, PRIORITY_LOW, G_L_FUNC))
 		{
-			if(!grammarUparam()) return false;
+			if(!grammarUparam(useOfParams)) return false;
 			nextToken();
 		}
 		if(!checkTerminalValue(TERMINAL_RIGHT_PAR, PRIORITY_HIGH, G_L_FUNC)) return false;
+
+		String auxFunctionParamsName = "";
+		int useOfParmasSize = useOfParams.size();
+		if(useOfParmasSize > 0)
+		{
+			for(int i = 0; i < useOfParmasSize; i ++)
+			{
+				String aux = auxFunctionParamsName;
+				auxFunctionParamsName = "$" + useOfParams.get(i) + aux;
+			}
+		}
+		SymbolTableElement e;
+		if(!auxFunctionParamsName.equals("")) e = getElementForCall(name + auxFunctionParamsName);
+		else e = getElementForCall(name);
+		if(e == null) return false;
+		int elementClass = e.getElementClass();
+		switch(elementClass)
+		{
+			case SymbolTableElement.CLASS_FUNCION: callingFP = FUNCTION; break;
+			case SymbolTableElement.CLASS_PROCEDIMIENTO: callingFP = PROCEDURE; break;
+			default: callingFP = "";
+		}
+		if(rightPartOfAsignation)
+		{
+			if(!callingFP.equals(FUNCTION))
+			{
+				parser.addSemanticError(Error.semanticFreeError(parser.getLineOfCode(), 
+						"Only functions can asign values."));
+				return false;
+			}
+		}
 		return true;
 	}
 	
-	private boolean grammarUparam()
+	private boolean grammarUparam(ArrayList<String> useOfParams)
 	{
+		int params = 0;
 		while(true)
 		{
 			if(!grammarExpr()) return false;
 			nextToken();
+			params += 1;
 			if(checkTerminalValue(TERMINAL_COMA, PRIORITY_LOW, G_U_PARAM))
 				nextToken();
 			else
 			{
 				pushToken();
+				for(int i = 0; i < params; i++)
+					useOfParams.add(typeStack.pop());
+				for(int i = params - 1; i >= 0; i--)
+					typeStack.push(useOfParams.get(i));
 				return true;
 			}
 		}
@@ -1358,7 +1407,12 @@ public class Grammar implements OperationResult
 		if(tag == Token.CONSTANT_ENTERO)
 			eDim.add(Integer.parseInt(value));
 		else 
-			setIntValueFromSymbolTable(value);
+			if(!setIntValueFromSymbolTable(value))
+			{
+				parser.addSemanticError(Error.semanticFreeError(parser.getLineOfCode(),
+						"Imposible to stablish a range from '" + value + "'"));
+				return false;
+			}
 		
 		//Check that range goes from low to high
 		int sizeDim = eDim.size();
@@ -1771,7 +1825,7 @@ public class Grammar implements OperationResult
 		if(e == null)
 			e = parser.getElementByName(name);
 		if(e == null)
-			parser.addSemanticError("Variable '" + name + "' at line: "
+			parser.addSemanticError("Element '" + name + "' at line: "
 					+ parser.getLineOfCode() + " hasn't been defined yet.");
 		return e;
 	}
