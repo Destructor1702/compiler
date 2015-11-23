@@ -233,7 +233,7 @@ public class Scanner
 				if(isKeyword())
 					return Token.KEYWORD;
 				if(isLogicalConstant())
-					return Token.CONSTANT_LOGICAL;
+					return Token.CONSTANT_LOGICO;
 				if(isLogicalOpertator())
 					return Token.OPERATOR_LOGICAL;
 				return Token.IDENTIFIER;
@@ -256,11 +256,11 @@ public class Scanner
 			case 11:
 				return Token.OPERATOR_ASIGNATION;
 			case 12:
-				return Token.CONSTANT_INT;
+				return Token.CONSTANT_ENTERO;
 			case 14:
 				return Token.CONSTANT_DECIMAL;
 			case 16:
-				return Token.CONSTANT_STRING;
+				return Token.CONSTANT_ALFANUM;
 			case 17:
 				return Token.DELIMITATOR;
 			case 18:

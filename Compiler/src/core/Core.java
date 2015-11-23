@@ -44,6 +44,9 @@ public class Core
 	{
 		this.fileName = fileName;
 		this.txtStatus = txtStatus;
+		parsingErrors = new ArrayList<String>();
+		semanticErrors = new ArrayList<String>();
+		symTable = new SymbolTableManager(this);
 	}
 	
 	/**
@@ -119,6 +122,7 @@ public class Core
 	public void addSemanticError(String error)
 	{
 		semanticErrors.add(error);
+		symTable.setError(true);
 	}
 	
 	/**

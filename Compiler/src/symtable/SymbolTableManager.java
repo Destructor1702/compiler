@@ -122,4 +122,13 @@ public class SymbolTableManager
 	{
 		return error;
 	}
+	
+	/**
+	 * Turns on and off the flag of errors.
+	 * @param flag
+	 */
+	public void setError(boolean flag)
+	{
+		error = flag;
+	}
 }

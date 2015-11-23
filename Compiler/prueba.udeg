@@ -3,10 +3,10 @@ usando libreria Texto_ES;
 programa TeTruena
 	constante decimal PI := 3.141592;
 	constante entero MAX := 30;
-
+	
 	tipo entero Arre arreglo(1 hasta MAX);
-
-	entero i, n;
+	
+	entero i, n, j, h;
 	Arre vector;
 	decimal r, s;
 	alfanumerico alfa, beta;
@@ -17,12 +17,11 @@ programa TeTruena
 		funcion entero FacRec( entero n )
 		inicio
 			si ( n < 2 )
-				regresa 1;
+				regresa 2;
 			sino
 				regresa n * FacRec( n - 1);
 			fin de si;
 		fin de FacRec;
-
 
 		funcion alfanumerico Concat(alfanumerico a, b)
 		inicio

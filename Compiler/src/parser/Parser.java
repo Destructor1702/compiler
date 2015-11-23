@@ -66,13 +66,21 @@ public class Parser implements Terminal
 	}
 	
 	/**
-	 * Adds  new error to the map.
-	 * @param line Line of code where the error was found.
+	 * Adds a parsing error.
 	 * @param error 
 	 */
-	public void addError(String error)
+	public void addParsingError(String error)
 	{
 		core.addParsingError(error);
+	}
+	
+	/**
+	 * Adds a semantic error.
+	 * @param error 
+	 */
+	public void addSemanticError(String error)
+	{
+		core.addSemanticError(error);
 	}
 	
 	/**
@@ -119,7 +127,11 @@ public class Parser implements Terminal
 	 */
 	public String getValueFromSymbolTable(String name)
 	{
-		return getElementByName(name).getValue();
+		SymbolTableElement e = getElementByName(name);
+		if(e != null)
+			return getElementByName(name).getValue();
+		core.addSemanticError(Error.semanticElementNotDefined(getLineOfCode(), name));
+		return "-999";
 	}
 	
 	/**
@@ -147,7 +159,7 @@ public class Parser implements Terminal
 	 * @param name
 	 * @return element
 	 */
-	private SymbolTableElement getElementByName(String name)
+	public SymbolTableElement getElementByName(String name)
 	{
 		return core.getElementByName(name);
 	}

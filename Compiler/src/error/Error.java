@@ -68,6 +68,12 @@ public class Error
 				+ expected + " >.";
 	}
 	
+	public final static String semanticFreeError(int lineOfCode, String error)
+	{
+		return "Semantic error in line: " + lineOfCode + "\n" + error;
+	}
+	
+	
 	/////////////////////////////////////////////////////////////////////////////////////////////
 
 }

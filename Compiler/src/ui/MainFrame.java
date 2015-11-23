@@ -13,6 +13,11 @@ import java.awt.event.TextEvent;
 import java.awt.event.TextListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 
 import core.Core;
 
@@ -67,6 +72,7 @@ public class MainFrame extends Frame implements ActionListener, WindowListener
 		//pnlEditor = new Panel(new BorderLayout());
 		txtStatus = new TextArea();
 		txtEditor = new TextArea();
+		txtEditor.setEditable(false);
 		txtLines = new TextArea("", 1, 3, TextArea.SCROLLBARS_HORIZONTAL_ONLY);
 		txtLines.setEditable(false);
 		line = 1;
@@ -117,6 +123,31 @@ public class MainFrame extends Frame implements ActionListener, WindowListener
 			{
 				btnCompile.setEnabled(true);
 				txtStatus.append("Selected file: " + fileName + "\n\n");
+				try
+				{
+					File f = new File(fileName);
+					FileReader r = new FileReader(f);
+					BufferedReader br = new BufferedReader(r);
+					char[] text = new char[Integer.parseInt(
+							String.valueOf(f.length()))];
+					br.read(text, 0, Integer.parseInt(
+							String.valueOf(f.length())));
+					txtEditor.append(String.valueOf(text));
+					br.close();
+				}
+				catch (FileNotFoundException e1)
+				{
+					e1.printStackTrace();
+				}
+				//txtEditor.append()
+				catch (NumberFormatException e1)
+				{
+					e1.printStackTrace();
+				}
+				catch (IOException e1)
+				{
+					e1.printStackTrace();
+				}
 			}
 		}
 		if(action.equals(TAG_COMPILE))
