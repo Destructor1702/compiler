@@ -163,4 +163,13 @@ public class Parser implements Terminal
 	{
 		return core.getElementByName(name);
 	}
+	
+	/**
+	 * Gets the core.
+	 * @return core.
+	 */
+	public Core getCore()
+	{
+		return core;
+	}
 }

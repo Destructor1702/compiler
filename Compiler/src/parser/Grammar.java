@@ -3,18 +3,21 @@ package parser;
 import java.util.ArrayList;
 import java.util.Stack;
 
+import codegen.CodeGenerator;
+import codegen.CodeInstruction;
+import error.Error;
+import extra.Numeric;
 import lexical.Token;
 import symtable.DataType;
 import symtable.SymbolTableElement;
-import error.Error;
-import extra.Numeric;
 
-public class Grammar implements OperationResult
+public class Grammar implements OperationResult, CodeInstruction
 {
 	private final static int PRIORITY_HIGH = 1;
 	private final static int PRIORITY_LOW = 2;
 	
 	private Parser parser;
+	private CodeGenerator codeGen;
 	private boolean errorFound;
 	private Token token;
 	private String value;
@@ -108,6 +111,7 @@ public class Grammar implements OperationResult
 	public Grammar(Parser parser)
 	{
 		this.parser = parser;
+		codeGen = new CodeGenerator(parser.getCore());
 		errorFound = false;
 		eDim = new ArrayList<Integer>();
 		hasParameters = false;
@@ -753,7 +757,10 @@ public class Grammar implements OperationResult
 		{
 			rightPartOfAsignation = false;
 			if(checkTypeFromTypeStack(e.getType()))
+			{
+				codeGen.addInstruction(STO, "0", name);
 				return true;
+			}
 			return false;
 		}
 		return false;

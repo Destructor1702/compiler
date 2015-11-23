@@ -13,8 +13,13 @@ public class Main
 	{
 		//if(args.length > 1)
 		{
-			Core core = new Core("prueba.udeg");
-			core.compile();
+			String file = "prueba.udeg";
+			if(file.endsWith(".udeg"))
+			{
+				Core core = new Core("prueba.udeg");
+				core.compile();
+			}
+			else System.out.println("File nos supported.");
 		}
 	}
 }

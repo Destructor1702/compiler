@@ -20,6 +20,7 @@ public class Core
 	private TextArea txtStatus;
 	private ArrayList<String> parsingErrors;
 	private ArrayList<String> semanticErrors;
+	private ArrayList<String> codeGenErrors;
 	private SymbolTableManager symTable;
 	
 	/**
@@ -32,6 +33,7 @@ public class Core
 		txtStatus = null;
 		parsingErrors = new ArrayList<String>();
 		semanticErrors = new ArrayList<String>();
+		codeGenErrors = new ArrayList<String>();
 		symTable = new SymbolTableManager(this);
 	}
 	
@@ -42,11 +44,8 @@ public class Core
 	 */
 	public Core(TextArea txtStatus, String fileName)
 	{
-		this.fileName = fileName;
+		this(fileName);
 		this.txtStatus = txtStatus;
-		parsingErrors = new ArrayList<String>();
-		semanticErrors = new ArrayList<String>();
-		symTable = new SymbolTableManager(this);
 	}
 	
 	/**
@@ -125,6 +124,11 @@ public class Core
 		symTable.setError(true);
 	}
 	
+	public void addCodeGenError(String error)
+	{
+		codeGenErrors.add(error);
+	}
+	
 	/**
 	 * Prints on the executing main.
 	 * @param message
@@ -139,5 +143,14 @@ public class Core
 		{
 			System.out.print("\n\n\n" + message);
 		}
+	}
+	
+	/**
+	 * Gets the file name.
+	 * @return file name.
+	 */
+	public String getFileName()
+	{
+		return fileName;
 	}
 }
