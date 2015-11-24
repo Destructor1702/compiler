@@ -773,9 +773,10 @@ public class Grammar implements OperationResult, CodeInstruction
 	{
 		nextToken();
 		if(!checkTerminalTag(Token.IDENTIFIER, PRIORITY_HIGH, G_CICLO)) return false;
-		SymbolTableElement e = getElementForCall(value);
+		String id = value;
+		SymbolTableElement e = getElementForCall(id);
 		if(e == null) return false;
-		e.setValue("1");//HARDCODED
+		e.setValue("");//HARDCODED
 		
 		nextToken();
 		if(!checkTerminalValue(TERMINAL_EN, PRIORITY_HIGH, G_CICLO)) return false;
@@ -783,27 +784,51 @@ public class Grammar implements OperationResult, CodeInstruction
 		nextToken();
 		if(!grammarExpr()) return false;
 		checkTypeFromTypeStack(DataType.ENTERO);
+		codeGen.addInstruction(STO, "0", id);
 		
 		nextToken();
 		if(!checkTerminalValue(TERMINAL_HASTA, PRIORITY_HIGH, G_CICLO)) return false;
+		codeGen.addInstruction(LOD, id, "0");
+		int lineFinalJump = codeGen.getInstructionNumber() - 1;
 		
 		nextToken();
 		if(!grammarExpr()) return false;
 		checkTypeFromTypeStack(DataType.ENTERO);
+		codeGen.addInstruction(OPR, "0", LESS_THAN);
+		String tagJumpCond = codeGen.getNextTag();
+		codeGen.addInstruction(JMC, "F", tagJumpCond);
 		
+		boolean hasPaso = false;
 		nextToken();
 		if(!checkTerminalValue(TERMINAL_FIN, PRIORITY_LOW, G_CICLO))
 		{
 			if(checkTerminalValue(TERMINAL_PASO, PRIORITY_LOW, G_CICLO))
 			{
+				hasPaso = true;
 				nextToken();
 				if(!grammarExpr()) return false;
 				checkTypeFromTypeStack(DataType.ENTERO);
+				codeGen.addInstruction(OPR, "0", ADD);
+				codeGen.addInstruction(STO, "0", id);
 				nextToken();
 			}
 		}
+		
 		grammarStatement();
+		codeGen.addInstruction(LOD, id, "0");
+		if(!hasPaso)
+		{
+			codeGen.addInstruction(LIT, "1", "0");
+			codeGen.addInstruction(OPR, "0", ADD);
+			codeGen.addInstruction(STO, "0", id);
+		}
+		
 		if(!checkTerminalValue(TERMINAL_FIN, PRIORITY_HIGH, G_CICLO)) return false;
+		String tagFinalJump = codeGen.getNextTag();
+		codeGen.addInstruction(JMP, "0", tagFinalJump);
+		codeGen.addTagToSymbolTable(tagFinalJump, lineFinalJump);
+		int lineJumpConditional = codeGen.getInstructionNumber();
+		codeGen.addTagToSymbolTable(tagJumpCond, lineJumpConditional);
 		
 		nextToken();
 		if(!checkTerminalValue(TERMINAL_DE, PRIORITY_HIGH, G_CICLO)) return false;

@@ -21,6 +21,7 @@ public class CodeGenerator
 	private int tagNumber;
 	private ArrayList<String> instructions;
 	private ArrayList<String> symbolTableIns;
+	private ArrayList<String> tags;
 	private boolean hasError;
 	private String mainTag;
 	
@@ -34,11 +35,13 @@ public class CodeGenerator
 		instructionNumber = 1;
 		tagNumber = 1;
 		instructions = new ArrayList<String>();
+		tags = new ArrayList<String>();
 		hasError = false;
 		String fileName = core.getFileName();
 		try
 		{
-			writer = new BufferedWriter(new FileWriter(fileName.substring(0, fileName.lastIndexOf(".")) + ".eje"));
+			writer = new BufferedWriter(new FileWriter(fileName.substring(0, fileName
+					.lastIndexOf(".")) + ".eje"));
 		} 
 		catch (IOException e)
 		{
@@ -67,7 +70,13 @@ public class CodeGenerator
 	{	
 		try
 		{
+			//Write main tag.
 			writer.write(mainTag);
+			
+			//Write tags.
+			int tagsSize = tags.size();
+			for(int i = 0; i < tagsSize; i++)
+				writer.write(tags.get(i) + "\n");
 			
 			//Write symbol table.
 			symbolTableIns = core.getSymbolTableForCodeGenerator();
@@ -108,6 +117,22 @@ public class CodeGenerator
 	public void setMainTag()
 	{
 		mainTag = "_P,I,I," + instructionNumber + ",0,#,\n";
+	}
+	
+	public String getNextTag()
+	{
+		return "_E" + tagNumber++;
+	}
+	
+	public void addTagToSymbolTable(String tagName, int line)
+	{
+		String tag = tagName + ",I,I," + line + ",0,#,";
+		tags.add(tag);
+	}
+	
+	public int getInstructionNumber()
+	{
+		return instructionNumber;
 	}
 	
 	//public void addTag(String tag)

@@ -2,8 +2,9 @@ programa TeTruena
 	entero x;
 		principal
 		inicio
-			x := 7;
-			despliega("Valor de x: ");
-			despliega(x);
+			ciclo x en 1 hasta 10
+				despliega("Valor de x: ");
+				despliega(x);
+			fin de ciclo;
 		fin de principal;
 	fin de TeTruena.

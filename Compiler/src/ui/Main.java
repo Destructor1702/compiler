@@ -13,7 +13,7 @@ public class Main
 	{
 		//if(args.length > 1)
 		{
-			String file = "prueba.udeg";
+			String file = "print.udeg";
 			if(file.endsWith(".udeg"))
 			{
 				Core core = new Core(file);
