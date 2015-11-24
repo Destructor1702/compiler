@@ -2,3 +2,5 @@
 *.txt
 .*
 Compiler/.*
+*.eje
+*.exe

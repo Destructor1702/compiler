@@ -58,4 +58,6 @@ public interface Terminal
 	final static String TERMINAL_NO = "no";
 	final static String TERMINAL_Y = "y";
 	final static String TERMINAL_O = "o";
+	final static String TERMINAL_VERDADERO = "verdadero";
+	final static String TERMINAL_FALSO = "falso";
 }

@@ -5,7 +5,6 @@ import java.awt.Button;
 import java.awt.FileDialog;
 import java.awt.Frame;
 import java.awt.Panel;
-import java.awt.Scrollbar;
 import java.awt.TextArea;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -49,7 +48,7 @@ public class MainFrame extends Frame implements ActionListener, WindowListener
 	private TextArea txtLines;
 	private TextArea txtStatus;
 	private String fileName;
-	private Scrollbar scroll;
+	//private Scrollbar scroll;
 	private int line;
 	
 	/**
@@ -67,7 +66,7 @@ public class MainFrame extends Frame implements ActionListener, WindowListener
 		btnCompile.setEnabled(false);
 		btnExit = new Button(TAG_EXIT);
 		btnExit.addActionListener(this);
-		scroll = new Scrollbar();
+		//scroll = new Scrollbar();
 		pnlButton = new Panel();
 		//pnlEditor = new Panel(new BorderLayout());
 		txtStatus = new TextArea();
@@ -83,11 +82,11 @@ public class MainFrame extends Frame implements ActionListener, WindowListener
 		pnlButton.add(btnLoad);
 		pnlButton.add(btnCompile);
 		pnlButton.add(btnExit);
-		pnlEditor.add(txtLines, BorderLayout.WEST);
-		pnlEditor.add(txtEditor, BorderLayout.CENTER);
+		//pnlEditor.add(txtLines, BorderLayout.WEST);
+		//pnlEditor.add(txtEditor, BorderLayout.CENTER);
 		setLayout(new BorderLayout());
 		add(pnlButton, BorderLayout.NORTH);
-		add(pnlEditor, BorderLayout.CENTER);
+		//add(pnlEditor, BorderLayout.CENTER);
 		add(txtStatus, BorderLayout.SOUTH);
 		setSize(WIDTH, HEIGHT);
 		setResizable(false);

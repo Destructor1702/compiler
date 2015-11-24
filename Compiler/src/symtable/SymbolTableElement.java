@@ -131,4 +131,45 @@ public class SymbolTableElement
 			default: return "ERROR";
 		}
 	}
+	
+	/**
+	 * Gets the class id
+	 * @param index
+	 * @return class id
+	 */
+	public final static String getClassForCodeGen(int index)
+	{
+		switch(index)
+		{
+			case CLASS_CONSTANTE: return "C";
+			case CLASS_FUNCION: return "F";
+			case CLASS_LIBRERIA: return "H";
+			case CLASS_LOCAL: return "L";
+			case CLASS_PARAMETRO: return "P";
+			case CLASS_PROCEDIMIENTO: return "F";
+			case CLASS_PROGRAMA: return "_P";
+			case CLASS_TIPO: return "T";
+			case CLASS_VARIABLE: return "V";
+			case CLASS_DECLARATION_TIPO: return "T";
+			
+			default: return "ERROR";
+		}
+	}
+	
+	public final static String getIsDimForCodeGen(boolean isDim)
+	{
+		if(isDim) return "1";
+		else return "0";
+	}
+	
+	public final static String getDimForCodeGen(ArrayList<Integer> dim)
+	{
+		return String.valueOf(dim.size());
+	}
+	
+	public final static String getValueForCodeGen(String value)
+	{
+		if(value.equals("")) return "#";
+		return value;
+	}
 }

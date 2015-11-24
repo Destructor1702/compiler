@@ -16,7 +16,7 @@ public class Main
 			String file = "prueba.udeg";
 			if(file.endsWith(".udeg"))
 			{
-				Core core = new Core("prueba.udeg");
+				Core core = new Core(file);
 				core.compile();
 			}
 			else System.out.println("File nos supported.");

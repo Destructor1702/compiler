@@ -108,10 +108,10 @@ public class Grammar implements OperationResult, CodeInstruction
 	 * Constructor.
 	 * @param parser
 	 */
-	public Grammar(Parser parser)
+	public Grammar(Parser parser, CodeGenerator codeGen)
 	{
 		this.parser = parser;
-		codeGen = new CodeGenerator(parser.getCore());
+		this.codeGen = codeGen;
 		errorFound = false;
 		eDim = new ArrayList<Integer>();
 		hasParameters = false;
@@ -191,6 +191,7 @@ public class Grammar implements OperationResult, CodeInstruction
 			}
 		}
 		checkTerminalValue(TERMINAL_PRINCIPAL, PRIORITY_HIGH, G_PROGAMA);
+		codeGen.setMainTag();
 		
 		nextToken();
 		if(!checkTerminalValue(TERMINAL_FIN, PRIORITY_LOW, G_PROGAMA)) grammarBlock();
@@ -226,7 +227,9 @@ public class Grammar implements OperationResult, CodeInstruction
 			parser.addParsingError(Error.createParsingFreeError(parser.getLineOfCode(), 
 					"Unreachable code."));
 			errorFound = true;
-		}				
+		}
+		
+		codeGen.addInstruction(OPR, "0", END_OF_PROGRAM);
 	}
 	
 	private boolean grammarLibraries()
@@ -956,7 +959,9 @@ public class Grammar implements OperationResult, CodeInstruction
 				return grammarUdim(e);
 			}
 			else if(checkTerminalValue(TERMINAL_LEFT_PAR, PRIORITY_LOW, G_TERMINO))
+			{
 				return grammarLFunc(id, PRIORITY_HIGH);
+			}
 			else
 			{
 				pushToken();
@@ -971,6 +976,7 @@ public class Grammar implements OperationResult, CodeInstruction
 						return false;
 					}
 					dimInUse.add(e.getName());
+					codeGen.addInstruction(LOD, id, "0");
 					return true;
 				}
 				return false;
@@ -981,6 +987,16 @@ public class Grammar implements OperationResult, CodeInstruction
 			hasExpression = true;
 			if(tag != Token.IDENTIFIER)
 			{
+				switch(tag)
+				{
+					case Token.CONSTANT_ENTERO:
+					case Token.CONSTANT_DECIMAL:
+					case Token.CONSTANT_ALFANUM:
+						 codeGen.addInstruction(LIT, value, "0" );break;
+					case Token.CONSTANT_LOGICO:
+						if(value.equals(TERMINAL_VERDADERO)) codeGen.addInstruction(LIT, "V", "0");
+						else if(value.equals(TERMINAL_FALSO)) codeGen.addInstruction(LIT, "F", "0");
+				}
 				typeStack.push(DataType.getDataTypeByTokenTag(tag));
 				dimInUse.add(value);
 			}
@@ -1009,7 +1025,10 @@ public class Grammar implements OperationResult, CodeInstruction
 		if(grammarTermino())
 		{
 			if(!op.equals(""))
+			{
 				verifyTypeStack(UNARY_OP, op);
+				codeGen.addInstruction(OPR, "0", SIGN_MINUS);
+			}
 			return true;
 		}
 		return false;
@@ -1032,7 +1051,10 @@ public class Grammar implements OperationResult, CodeInstruction
 				{
 					pushToken();
 					if(!op.equals(""))
+					{	
 						verifyTypeStack(BINARY_OP, op);
+						codeGen.addInstruction(OPR, "0", EXP);
+					}
 					return true;
 				}
 			}
@@ -1066,7 +1088,12 @@ public class Grammar implements OperationResult, CodeInstruction
 			{
 				pushToken();
 				if(!op.equals(""))
+				{
 					verifyTypeStack(BINARY_OP, op);
+					if(op.equals(TERMINAL_OP_MUL)) codeGen.addInstruction(OPR, "0", MUL);
+					else if(op.equals(TERMINAL_OP_DIV)) codeGen.addInstruction(OPR, "0", DIV);
+					else if(op.equals(TERMINAL_OP_MOD)) codeGen.addInstruction(OPR, "0", MOD);
+				}
 				return true;
 			}
 		}
@@ -1093,7 +1120,12 @@ public class Grammar implements OperationResult, CodeInstruction
 			{
 				pushToken();
 				if(!op.equals(""))
+				{
 					verifyTypeStack(BINARY_OP, op);
+					if(op.equals(TERMINAL_OP_ADD))codeGen.addInstruction(OPR, "0", ADD);
+					else if(op.equals(TERMINAL_OP_SUB)) codeGen.addInstruction(OPR, "0", SUB);
+				}
+				
 				return true;
 			}
 		}
@@ -1135,7 +1167,17 @@ public class Grammar implements OperationResult, CodeInstruction
 			{
 				pushToken();
 				if(!op.equals(""))
+				{
 					verifyTypeStack(BINARY_OP, op);
+					if(op.equals(TERMINAL_OP_LESS_THAN)) 
+						codeGen.addInstruction(OPR, "0", LESS_THAN);
+					else if(op.equals(TERMINAL_OP_GREATER_THAN)) 
+						codeGen.addInstruction(OPR, "0", GREATER_THAN);
+					else if(op.equals(TERMINAL_OP_LESS_OR_EQUAL_THAN)) 
+						codeGen.addInstruction(OPR, "0", LESS_OR_EQUAL_THAN);
+					else if(op.equals(TERMINAL_OP_GREATER_OR_EQUAL_THAN)) 
+						codeGen.addInstruction(OPR, "0", GREATER_OR_EQUAL_THAN);
+				}		
 				return true;
 			}
 		}
@@ -1152,7 +1194,10 @@ public class Grammar implements OperationResult, CodeInstruction
 		if(grammarOpRel())
 		{
 			if(!op.equals(""))
+			{
 				verifyTypeStack(UNARY_OP, op);
+				codeGen.addInstruction(OPR, "0", NOT);
+			}	
 			return true;
 		}
 		return false;
@@ -1174,7 +1219,10 @@ public class Grammar implements OperationResult, CodeInstruction
 			{
 				pushToken();
 				if(!op.equals(""))
+				{
 					verifyTypeStack(BINARY_OP, op);
+					codeGen.addInstruction(OPR, "0", AND);
+				}
 				return true;
 			}
 		}
@@ -1196,7 +1244,10 @@ public class Grammar implements OperationResult, CodeInstruction
 			{
 				pushToken();
 				if(!op.equals(""))
+				{
 					verifyTypeStack(BINARY_OP, op);
+					codeGen.addInstruction(OPR, "0", OR);
+				}
 				return true;
 			}
 		}
@@ -1284,7 +1335,10 @@ public class Grammar implements OperationResult, CodeInstruction
 			if(!checkTerminalValue(TERMINAL_OP_ADD, PRIORITY_LOW, G_DESPLIEGA))
 			{
 				if(checkTerminalValue(TERMINAL_RIGHT_PAR, PRIORITY_HIGH, G_DESPLIEGA))
+				{
+					codeGen.addInstruction(OPR, "0", PRINT);
 					return true;
+				}
 				return false;
 			}
 			else nextToken();

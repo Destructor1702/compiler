@@ -131,4 +131,24 @@ public class SymbolTableManager
 	{
 		error = flag;
 	}
+	
+	/**
+	 * Gets the symbol table ready to be used by the code generator.
+	 * @return
+	 */
+	public ArrayList<String> getSymbolTableForCodeGenerator()
+	{
+		ArrayList<String> symTabCodGen = new ArrayList<String>();
+		for(SymbolTableElement e : symbolTable.values())
+		{
+			symTabCodGen.add(e.getName() + "," + 
+					SymbolTableElement.getClassForCodeGen(e.getElementClass()) + "," +
+					e.getType() + "," + 
+					SymbolTableElement.getIsDimForCodeGen(e.isDimensioned()) + "," +
+					SymbolTableElement.getDimForCodeGen(e.getDim()) + "," +
+					SymbolTableElement.getValueForCodeGen(e.getValue()) + ",");
+		}
+		
+		return symTabCodGen;
+	}
 }

@@ -1,11 +1,12 @@
 package parser;
 
+import codegen.CodeGenerator;
+import core.Core;
+import error.Error;
 import lexical.Scanner;
 import lexical.Terminal;
 import lexical.Token;
 import symtable.SymbolTableElement;
-import core.Core;
-import error.Error;
 
 /**
  * This class is in charge of administrate the parsing process.
@@ -26,15 +27,17 @@ public class Parser implements Terminal
 	 */
 	private Scanner scanner;
 	private Core core;
+	private CodeGenerator codeGen;
 		
 	/**
 	 * Default constructor.
 	 * @param scanner Scanner to get the tokens.
 	 */
-	public Parser(Core core, Scanner scanner)
+	public Parser(Core core, Scanner scanner, CodeGenerator codeGen)
 	{
 		this.scanner = scanner;
 		this.core = core;
+		this.codeGen = codeGen;
 	}
 	
 	/**
@@ -59,7 +62,7 @@ public class Parser implements Terminal
 	 */
 	public int startParsing()
 	{
-		Grammar grammar = new Grammar(this);
+		Grammar grammar = new Grammar(this, codeGen);
 		grammar.startGrammaticalAnalysis();
 		if(!grammar.getErrorFound()) return RESULT_OK;
 		return RESULT_ERROR;

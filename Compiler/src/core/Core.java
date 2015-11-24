@@ -3,11 +3,12 @@ package core;
 import java.awt.TextArea;
 import java.util.ArrayList;
 
+import codegen.CodeGenerator;
+import error.Error;
 import lexical.Scanner;
 import parser.Parser;
 import symtable.SymbolTableElement;
 import symtable.SymbolTableManager;
-import error.Error;
 
 /**
  * @author natafrank
@@ -22,6 +23,7 @@ public class Core
 	private ArrayList<String> semanticErrors;
 	private ArrayList<String> codeGenErrors;
 	private SymbolTableManager symTable;
+	private boolean readyToGenerate;
 	
 	/**
 	 * Constructor for terminal execution.
@@ -35,6 +37,7 @@ public class Core
 		semanticErrors = new ArrayList<String>();
 		codeGenErrors = new ArrayList<String>();
 		symTable = new SymbolTableManager(this);
+		readyToGenerate = true;
 	}
 	
 	/**
@@ -56,7 +59,8 @@ public class Core
 		Scanner scanner = new Scanner(fileName);
 		if(scanner.getStatus() == Scanner.STATUS_GOOD)
 		{
-			Parser parser = new Parser(this, scanner);
+			CodeGenerator codeGen = new CodeGenerator(this);
+			Parser parser = new Parser(this, scanner, codeGen);
 			int parsingResult = parser.startParsing();
 			print("/************** PARSER ****************/");
 			switch(parsingResult)
@@ -70,19 +74,48 @@ public class Core
 					{
 						print(parsingErrors.get(i));
 					}
+					readyToGenerate = false;
 					break;
 				default:
 					print("Unexpected Result.");
 			}
 			print("/************** SEMANTIC ****************/");
-			if(symTable.hasError())
+			if(!symTable.hasError())
+				print("Semantic OK.");				
+			else
+			{
 				for(int i = 0; i < semanticErrors.size(); i++)
 					print(semanticErrors.get(i));
+				readyToGenerate = false;
+			}
+			print("/************** CODE GENERATION ****************/");
+			if(!codeGen.hasError())
+				print("Code generation OK.");
 			else
-				print("Semantic OK.");
+			{
+				int codeGenErrorsSize = codeGenErrors.size();
+				for(int i = 0; i < codeGenErrorsSize; i++)
+					print(codeGenErrors.get(i));
+				readyToGenerate = false;
+			}
 			print(symTable.getPrintableTable());
+			if(readyToGenerate)
+			{
+				if(!codeGen.generateFile())
+				{
+					int codeGenErrorsSize = codeGenErrors.size();
+					for(int i = 0; i < codeGenErrorsSize; i++)
+						print(codeGenErrors.get(i));
+				}
+				else
+					print("\n\nCOMPILATION COMPLETED WITH SUCCESS.\n\n");
+			}
 		}
-		else print(Error.LEXICAL_CREATION);
+		else
+		{
+			print(Error.LEXICAL_CREATION);
+			readyToGenerate = false;
+		}
 	}
 	
 	/**
@@ -152,5 +185,14 @@ public class Core
 	public String getFileName()
 	{
 		return fileName;
+	}
+	
+	/**
+	 * Gets the symbol table ready to be used by the code generator.
+	 * @return
+	 */
+	public ArrayList<String> getSymbolTableForCodeGenerator()
+	{
+		return symTable.getSymbolTableForCodeGenerator();
 	}
 }

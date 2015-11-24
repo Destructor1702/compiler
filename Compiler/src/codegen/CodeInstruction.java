@@ -14,6 +14,7 @@ public interface CodeInstruction
 	public final static String STO = "STO";
 	public final static String JMP = "JMP";
 	public final static String JMC = "JMC";
+	public final static String CAL = "CAL";
 	
 	//Index Operation.
 	public final static String END_OF_PROGRAM = "0";
