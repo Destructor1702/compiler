@@ -30,9 +30,9 @@ public class MainFrame extends Frame implements ActionListener, WindowListener
 	private static final long serialVersionUID = 1L;
 	
 	//Frame variables.
-	private final static int WIDTH = 1000;
-	private final static int HEIGHT = 600;
-	private final static int LOCATION = 100;
+	private final static int WIDTH = 1200;
+	private final static int HEIGHT = 650;
+	private final static int LOCATION = 50;
 	
 	//Tags for components.
 	private final static String TAG_LOAD = "Load";
@@ -43,7 +43,7 @@ public class MainFrame extends Frame implements ActionListener, WindowListener
 	private Button btnCompile;
 	private Button btnExit;
 	private Panel pnlButton;
-	//private Panel pnlEditor;
+	private Panel pnlEditor;
 	private TextArea txtEditor;
 	private TextArea txtLines;
 	private TextArea txtStatus;
@@ -68,7 +68,7 @@ public class MainFrame extends Frame implements ActionListener, WindowListener
 		btnExit.addActionListener(this);
 		//scroll = new Scrollbar();
 		pnlButton = new Panel();
-		//pnlEditor = new Panel(new BorderLayout());
+		pnlEditor = new Panel(new BorderLayout());
 		txtStatus = new TextArea();
 		txtEditor = new TextArea();
 		txtEditor.setEditable(false);
@@ -83,10 +83,10 @@ public class MainFrame extends Frame implements ActionListener, WindowListener
 		pnlButton.add(btnCompile);
 		pnlButton.add(btnExit);
 		//pnlEditor.add(txtLines, BorderLayout.WEST);
-		//pnlEditor.add(txtEditor, BorderLayout.CENTER);
+		pnlEditor.add(txtEditor, BorderLayout.CENTER);
 		setLayout(new BorderLayout());
 		add(pnlButton, BorderLayout.NORTH);
-		//add(pnlEditor, BorderLayout.CENTER);
+		add(pnlEditor, BorderLayout.CENTER);
 		add(txtStatus, BorderLayout.SOUTH);
 		setSize(WIDTH, HEIGHT);
 		setResizable(false);
