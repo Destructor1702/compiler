@@ -67,6 +67,7 @@ public class Grammar implements OperationResult, CodeInstruction
 	private ArrayList<String> dimInUse;
 	
 	private boolean isInsideDespliega;
+	private boolean isDespliegaNewLine;
 	
 	/**
 	 * Index for grammars.
@@ -123,6 +124,7 @@ public class Grammar implements OperationResult, CodeInstruction
 		typeStack = new Stack<String>();
 		rightPartOfAsignation = false;
 		isInsideDespliega = false;
+		isDespliegaNewLine = false;
 	}
 	
 	/**
@@ -1020,8 +1022,20 @@ public class Grammar implements OperationResult, CodeInstruction
 				{
 					case Token.CONSTANT_ENTERO:
 					case Token.CONSTANT_DECIMAL:
+						codeGen.addInstruction(LIT, value, "0" );break;
 					case Token.CONSTANT_ALFANUM:
-						 codeGen.addInstruction(LIT, value, "0" );break;
+						if(isInsideDespliega)
+						{
+							if(value.equals("\"\\n\"")) 
+							{
+								isDespliegaNewLine = true;
+								codeGen.addInstruction(LIT, " ", "0" );
+							}
+							else codeGen.addInstruction(LIT, value, "0" );
+						}
+						else 
+							codeGen.addInstruction(LIT, value, "0" );
+						break;
 					case Token.CONSTANT_LOGICO:
 						if(value.equals(TERMINAL_VERDADERO)) codeGen.addInstruction(LIT, "V", "0");
 						else if(value.equals(TERMINAL_FALSO)) codeGen.addInstruction(LIT, "F", "0");
@@ -1376,15 +1390,20 @@ public class Grammar implements OperationResult, CodeInstruction
 			{
 				if(checkTerminalValue(TERMINAL_RIGHT_PAR, PRIORITY_HIGH, G_DESPLIEGA))
 				{
-					codeGen.addInstruction(OPR, "0", PRINT);
 					isInsideDespliega = false;
+					if(isDespliegaNewLine)
+					{
+						codeGen.addInstruction(OPR, "0", PRINTLN);
+						isDespliegaNewLine = false;
+					}
 					return true;
 				}
 				return false;
 			}
 			else
 			{
-				codeGen.addInstruction(OPR, "0", PRINT);
+				if(!isDespliegaNewLine)
+					codeGen.addInstruction(OPR, "0", PRINT);
 				nextToken();
 			}
 		}

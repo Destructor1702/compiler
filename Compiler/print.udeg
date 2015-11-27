@@ -4,8 +4,8 @@ programa TeTruena
 	entero x;
 		principal
 		inicio
-			ciclo x en 1 hasta 10 paso (1+1)
-				despliega(Valor de x: " + x + " ");
+			ciclo x en 1 hasta 10
+				despliega(" Valor de x: " + x + "\n");
 			fin de ciclo;
 		fin de principal;
 	fin de TeTruena.
