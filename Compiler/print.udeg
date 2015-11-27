@@ -1,8 +1,10 @@
+//Programa de prueba.
+//Francisco Natanael.
 programa TeTruena
 	entero x;
 		principal
 		inicio
-			ciclo x en 1 hasta 10
+			ciclo x en 1 hasta 10 paso (1+1)
 				despliega("Valor de x: ");
 				despliega(x);
 			fin de ciclo;

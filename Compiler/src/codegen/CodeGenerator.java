@@ -25,6 +25,10 @@ public class CodeGenerator
 	private boolean hasError;
 	private String mainTag;
 	
+	//This array will hold instructions that need to be added after some progress.
+	private ArrayList<String> instructionsBuffer;
+	private boolean activeInstructionBuffer;
+	
 	/**
 	 * Constructor.
 	 * @param core
@@ -35,7 +39,9 @@ public class CodeGenerator
 		instructionNumber = 1;
 		tagNumber = 1;
 		instructions = new ArrayList<String>();
+		instructionsBuffer = new ArrayList<String>();
 		tags = new ArrayList<String>();
+		activeInstructionBuffer = false;
 		hasError = false;
 		String fileName = core.getFileName();
 		try
@@ -59,7 +65,17 @@ public class CodeGenerator
 	 */
 	public void addInstruction(String mnemonic, String p1, String p2)
 	{
-		instructions.add(instructionNumber++ + " " + mnemonic + " " + p1 + "," + p2);
+		String instruction = instructionNumber++ + " " + mnemonic + " " + p1 + "," + p2;
+		if(!activeInstructionBuffer)
+			instructions.add(instruction);
+		else
+			instructionsBuffer.add(instruction);
+	}
+	
+	public void addBufferToMainInstructionSet()
+	{
+		for(String instruction : instructionsBuffer)
+			instructions.add(instruction);
 	}
 	
 	/**
@@ -133,6 +149,11 @@ public class CodeGenerator
 	public int getInstructionNumber()
 	{
 		return instructionNumber;
+	}
+	
+	public void setActiveInstructionBuffer(boolean b)
+	{
+		activeInstructionBuffer = b;
 	}
 	
 	//public void addTag(String tag)

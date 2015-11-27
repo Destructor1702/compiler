@@ -38,7 +38,7 @@ public class Grammar implements OperationResult, CodeInstruction
 	 */
 	private boolean hasParameters;
 	private ArrayList<Parameter> parameters;
-	
+
 	/**
 	 * Flag to indicate if the declaration of a variable is being local, that is, inside a function
 	 * or procedure.
@@ -805,11 +805,10 @@ public class Grammar implements OperationResult, CodeInstruction
 			if(checkTerminalValue(TERMINAL_PASO, PRIORITY_LOW, G_CICLO))
 			{
 				hasPaso = true;
+				codeGen.setActiveInstructionBuffer(true);
 				nextToken();
 				if(!grammarExpr()) return false;
 				checkTypeFromTypeStack(DataType.ENTERO);
-				codeGen.addInstruction(OPR, "0", ADD);
-				codeGen.addInstruction(STO, "0", id);
 				nextToken();
 			}
 		}
@@ -817,12 +816,14 @@ public class Grammar implements OperationResult, CodeInstruction
 		grammarStatement();
 		codeGen.addInstruction(LOD, id, "0");
 		if(!hasPaso)
-		{
 			codeGen.addInstruction(LIT, "1", "0");
-			codeGen.addInstruction(OPR, "0", ADD);
-			codeGen.addInstruction(STO, "0", id);
+		else
+		{
+			codeGen.addBufferToMainInstructionSet();
+			codeGen.setActiveInstructionBuffer(false);
 		}
-		
+		codeGen.addInstruction(OPR, "0", ADD);
+		codeGen.addInstruction(STO, "0", id);
 		if(!checkTerminalValue(TERMINAL_FIN, PRIORITY_HIGH, G_CICLO)) return false;
 		String tagFinalJump = codeGen.getNextTag();
 		codeGen.addInstruction(JMP, "0", tagFinalJump);
