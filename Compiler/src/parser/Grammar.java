@@ -66,6 +66,8 @@ public class Grammar implements OperationResult, CodeInstruction
 	 */
 	private ArrayList<String> dimInUse;
 	
+	private boolean isInsideDespliega;
+	
 	/**
 	 * Index for grammars.
 	 */
@@ -120,6 +122,7 @@ public class Grammar implements OperationResult, CodeInstruction
 		dimInUse = new ArrayList<String>();
 		typeStack = new Stack<String>();
 		rightPartOfAsignation = false;
+		isInsideDespliega = false;
 	}
 	
 	/**
@@ -794,7 +797,7 @@ public class Grammar implements OperationResult, CodeInstruction
 		nextToken();
 		if(!grammarExpr()) return false;
 		checkTypeFromTypeStack(DataType.ENTERO);
-		codeGen.addInstruction(OPR, "0", LESS_THAN);
+		codeGen.addInstruction(OPR, "0", LESS_OR_EQUAL_THAN);
 		String tagJumpCond = codeGen.getNextTag();
 		codeGen.addInstruction(JMC, "F", tagJumpCond);
 		
@@ -1134,8 +1137,18 @@ public class Grammar implements OperationResult, CodeInstruction
 			nextToken();
 			if(checkTerminalValue(TERMINAL_OP_ADD, PRIORITY_LOW, G_OP_SR))
 			{
-				op = TERMINAL_OP_ADD;
-				nextToken();
+				if(!isInsideDespliega)
+				{
+					//codeGen.addInstruction(OPR, "0", PRINT);
+					op = TERMINAL_OP_ADD;
+					nextToken();
+					
+				}
+				else
+				{
+					pushToken();
+					return true;
+				}
 			}
 			else if(checkTerminalValue(TERMINAL_OP_SUB, PRIORITY_LOW, G_OP_SR))
 			{
@@ -1349,6 +1362,7 @@ public class Grammar implements OperationResult, CodeInstruction
 	
 	private boolean grammarDespliega()
 	{
+		isInsideDespliega = true;
 		nextToken();
 		if(!checkTerminalValue(TERMINAL_LEFT_PAR, PRIORITY_HIGH, G_DESPLIEGA)) return false;
 		
@@ -1363,11 +1377,16 @@ public class Grammar implements OperationResult, CodeInstruction
 				if(checkTerminalValue(TERMINAL_RIGHT_PAR, PRIORITY_HIGH, G_DESPLIEGA))
 				{
 					codeGen.addInstruction(OPR, "0", PRINT);
+					isInsideDespliega = false;
 					return true;
 				}
 				return false;
 			}
-			else nextToken();
+			else
+			{
+				codeGen.addInstruction(OPR, "0", PRINT);
+				nextToken();
+			}
 		}
 	}
 	

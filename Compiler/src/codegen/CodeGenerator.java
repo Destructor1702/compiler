@@ -72,6 +72,9 @@ public class CodeGenerator
 			instructionsBuffer.add(instruction);
 	}
 	
+	/**
+	 * Appends the instructions buffer to the main instructions set.
+	 */
 	public void addBufferToMainInstructionSet()
 	{
 		for(String instruction : instructionsBuffer)

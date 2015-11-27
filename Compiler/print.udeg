@@ -5,8 +5,7 @@ programa TeTruena
 		principal
 		inicio
 			ciclo x en 1 hasta 10 paso (1+1)
-				despliega("Valor de x: ");
-				despliega(x);
+				despliega(Valor de x: " + x + " ");
 			fin de ciclo;
 		fin de principal;
 	fin de TeTruena.
