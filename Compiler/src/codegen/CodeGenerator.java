@@ -4,9 +4,10 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import error.Error;
+import java.util.Stack;
 
 import core.Core;
+import error.Error;
 
 /**
  * This class is in charge of the code generation of the compiling file.
@@ -28,6 +29,8 @@ public class CodeGenerator
 	//This array will hold instructions that need to be added after some progress.
 	private ArrayList<String> instructionsBuffer;
 	private boolean activeInstructionBuffer;
+	private Stack<String> instructionsStackBuffer;
+	private boolean activeStackBuffer;
 	
 	/**
 	 * Constructor.
@@ -42,6 +45,8 @@ public class CodeGenerator
 		instructionsBuffer = new ArrayList<String>();
 		tags = new ArrayList<String>();
 		activeInstructionBuffer = false;
+		instructionsStackBuffer = new Stack<String>();
+		activeStackBuffer = false;
 		hasError = false;
 		String fileName = core.getFileName();
 		try
@@ -69,7 +74,12 @@ public class CodeGenerator
 		if(!activeInstructionBuffer)
 			instructions.add(instructionNumber++ + " "  + instruction);
 		else
-			instructionsBuffer.add(instruction);
+		{
+			if(activeStackBuffer)
+				instructionsStackBuffer.push(instruction);
+			else
+				instructionsBuffer.add(instruction);
+		}
 	}
 	
 	/**
@@ -77,9 +87,18 @@ public class CodeGenerator
 	 */
 	public void addBufferToMainInstructionSet()
 	{
-		for(String instruction : instructionsBuffer)
-			instructions.add(instructionNumber++ + " " + instruction);
-		instructionsBuffer.clear();
+		if(!activeStackBuffer)
+		{
+			for(String instruction : instructionsBuffer)
+				instructions.add(instructionNumber++ + " " + instruction);
+			instructionsBuffer.clear();
+		}
+		else
+		{
+			for(String instruction : instructionsStackBuffer)
+				instructions.add(instructionNumber++ + " " + instruction);
+			instructionsStackBuffer.clear();
+		}
 	}
 	
 	/**
@@ -160,5 +179,8 @@ public class CodeGenerator
 		activeInstructionBuffer = b;
 	}
 	
-	//public void addTag(String tag)
+	public void setActiveStackBuffer(boolean b)
+	{
+		activeStackBuffer = b;
+	}
 }

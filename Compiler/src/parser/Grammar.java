@@ -443,6 +443,7 @@ public class Grammar implements OperationResult, CodeInstruction
 				if(!checkTerminalValue(TERMINAL_LEFT_PAR, PRIORITY_HIGH, G_TIPOS)) return false;
 				
 				boolean moreRanges = false;
+				int numberOfRanges = 2;
 				do
 				{
 					if(moreRanges = grammarRange())
@@ -452,6 +453,14 @@ public class Grammar implements OperationResult, CodeInstruction
 						{
 							if(!checkTerminalValue(TERMINAL_COMA, PRIORITY_HIGH, G_TIPOS))
 								return false;
+							if(numberOfRanges > 2)
+							{
+								parser.addSemanticError(Error.semanticFreeError(parser
+										.getLineOfCode(), "Max of 2 dimensions are allowed for"
+												+ "arrays."));
+								return false;
+							}
+							numberOfRanges++;
 						}
 						else
 						{
@@ -989,13 +998,15 @@ public class Grammar implements OperationResult, CodeInstruction
 						parser.addSemanticError("At grammar 'termino' variable '" + id + 
 								"' at line: " + parser.getLineOfCode() + " is not dimensioned.");
 						return false;
-					}
-					codeGen.setActiveInstructionBuffer(true);
-					codeGen.addInstruction(LOD, id, "0");
-					//codeGen.setActiveInstructionBuffer(false);
+					}				
 				}
 				else return false;
-				return grammarUdim(e);
+				if(grammarUdim(e))
+				{
+					codeGen.addInstruction(LOD, id, "0");
+					return true;
+				}
+				return false;
 			}
 			else if(checkTerminalValue(TERMINAL_LEFT_PAR, PRIORITY_LOW, G_TERMINO))
 			{

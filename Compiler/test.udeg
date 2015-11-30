@@ -1,0 +1,17 @@
+//Programa de prueba.
+//Francisco Natanael.
+programa TeTruena
+	entero x;
+	tipo entero Arre arreglo(1 hasta 10);
+	Arre vector;
+		principal
+		inicio
+			x := 1;
+			//lee(vector[ x ]);
+			vector[x] := 77;
+			despliega("Valor 1: " + vector[x] + "\n");
+			vector[2] := 50;
+			despliega("Valor 2: " + vector[2] + "\n");
+			despliega("Valor 1: " + vector[x] + "\n");
+		fin de principal;
+	fin de TeTruena.

@@ -144,15 +144,19 @@ public class SymbolTableManager
 			String symBuffer = e.getName() + "," + 
 					SymbolTableElement.getClassForCodeGen(e.getElementClass()) + "," +
 					e.getType() + ",";
-			if(!e.isDimensioned()) symBuffer += "0";
+			if(!e.isDimensioned()) symBuffer += "0,0,";
 			else
 			{
 				ArrayList<Integer> dim = e.getDim();
 				int dimSize = dim.size();
-					for(int i = 0; i < dimSize/2; i++)
-						symBuffer += (dim.get(i + 1) - dim.get(i));
+					for(int i = 0; i < dimSize; i+=2)
+					{
+						int dimDiff = dim.get(i + 1) - dim.get(i);
+						symBuffer += dimDiff + ",";
+					}
+					if(dimSize == 2) symBuffer += "0,";
 			}
-			symBuffer += ",0,#,";
+			symBuffer += "#,";
 			
 			symTabCodGen.add(symBuffer);
 		}

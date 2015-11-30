@@ -4,3 +4,4 @@
 Compiler/.*
 *.eje
 *.exe
+*.sym

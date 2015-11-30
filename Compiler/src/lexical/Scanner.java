@@ -124,6 +124,7 @@ public class Scanner
 		while(result != ACP && result != ERR)
 		{
 			in = getNextChar();
+			if(in == '\r') continue;
 			while(in == '\n' || in == '\t' || in == ' ')
 			{	
 				if(state != 0 && state != 15 && state != 19)
