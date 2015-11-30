@@ -889,6 +889,7 @@ public class Grammar implements OperationResult, CodeInstruction
 				return false;
 			}
 		}
+		codeGen.addInstruction(OPR, e.getName(), READ);
 		return true;
 	}
 	
@@ -1415,6 +1416,8 @@ public class Grammar implements OperationResult, CodeInstruction
 						codeGen.addInstruction(OPR, "0", PRINTLN);
 						isDespliegaNewLine = false;
 					}
+					else codeGen.addInstruction(OPR, "0", PRINT);
+						
 					return true;
 				}
 				return false;

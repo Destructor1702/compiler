@@ -6,9 +6,10 @@ programa TeTruena
 	Arre vector;
 		principal
 		inicio
-			x := 1;
-			//lee(vector[ x ]);
-			vector[x] := 77;
+			despliega("Indice al cual acceder: ");
+			lee(x);
+			despliega("Ingresa el valor de vector[ " + x + " ] :" + "\n");
+			lee(vector[ x ]);
 			despliega("Valor 1: " + vector[x] + "\n");
 			vector[2] := 50;
 			despliega("Valor 2: " + vector[2] + "\n");
