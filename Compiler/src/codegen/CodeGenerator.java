@@ -65,9 +65,9 @@ public class CodeGenerator
 	 */
 	public void addInstruction(String mnemonic, String p1, String p2)
 	{
-		String instruction = instructionNumber++ + " " + mnemonic + " " + p1 + "," + p2;
+		String instruction = mnemonic + " " + p1 + "," + p2;
 		if(!activeInstructionBuffer)
-			instructions.add(instruction);
+			instructions.add(instructionNumber++ + " "  + instruction);
 		else
 			instructionsBuffer.add(instruction);
 	}
@@ -78,7 +78,8 @@ public class CodeGenerator
 	public void addBufferToMainInstructionSet()
 	{
 		for(String instruction : instructionsBuffer)
-			instructions.add(instruction);
+			instructions.add(instructionNumber++ + " " + instruction);
+		instructionsBuffer.clear();
 	}
 	
 	/**

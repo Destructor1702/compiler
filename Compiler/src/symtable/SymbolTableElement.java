@@ -148,9 +148,9 @@ public class SymbolTableElement
 			case CLASS_PARAMETRO: return "P";
 			case CLASS_PROCEDIMIENTO: return "F";
 			case CLASS_PROGRAMA: return "_P";
-			case CLASS_TIPO: return "T";
+			case CLASS_TIPO: return "V";
 			case CLASS_VARIABLE: return "V";
-			case CLASS_DECLARATION_TIPO: return "T";
+			case CLASS_DECLARATION_TIPO: return "V";
 			
 			default: return "ERROR";
 		}

@@ -2,10 +2,13 @@
 //Francisco Natanael.
 programa TeTruena
 	entero x;
+	tipo entero Arre arreglo(1 hasta 10, 1 hasta 5, 1 hasta 2);
+	Arre vector;
 		principal
 		inicio
-			ciclo x en 1 hasta 10
-				despliega(" Valor de x: " + x + "\n");
-			fin de ciclo;
+			x := 2;
+			//lee(vector[ x ]);
+			vector[x, 2, 1] := 7;
+			despliega("Valor: " + vector[x, 2, 1] + "\n");
 		fin de principal;
 	fin de TeTruena.

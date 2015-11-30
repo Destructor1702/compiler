@@ -141,12 +141,20 @@ public class SymbolTableManager
 		ArrayList<String> symTabCodGen = new ArrayList<String>();
 		for(SymbolTableElement e : symbolTable.values())
 		{
-			symTabCodGen.add(e.getName() + "," + 
+			String symBuffer = e.getName() + "," + 
 					SymbolTableElement.getClassForCodeGen(e.getElementClass()) + "," +
-					e.getType() + "," + 
-					SymbolTableElement.getIsDimForCodeGen(e.isDimensioned()) + "," +
-					SymbolTableElement.getDimForCodeGen(e.getDim()) + "," +
-					SymbolTableElement.getValueForCodeGen(e.getValue()) + ",");
+					e.getType() + ",";
+			if(!e.isDimensioned()) symBuffer += "0";
+			else
+			{
+				ArrayList<Integer> dim = e.getDim();
+				int dimSize = dim.size();
+					for(int i = 0; i < dimSize/2; i++)
+						symBuffer += (dim.get(i + 1) - dim.get(i));
+			}
+			symBuffer += ",0,#,";
+			
+			symTabCodGen.add(symBuffer);
 		}
 		
 		return symTabCodGen;

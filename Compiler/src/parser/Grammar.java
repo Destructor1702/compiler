@@ -735,7 +735,7 @@ public class Grammar implements OperationResult, CodeInstruction
 		if(e.getElementClass() == SymbolTableElement.CLASS_CONSTANTE)
 		{
 			parser.addSemanticError(Error.semanticFreeError(parser.getLineOfCode(),
-					"Can't reasing a value to the constant '" + e.getName() + "'"));
+					"Can't re-assign a value to the constant '" + e.getName() + "'"));
 			return false;
 		}
 		boolean hasDim = false;
@@ -767,6 +767,7 @@ public class Grammar implements OperationResult, CodeInstruction
 			if(checkTypeFromTypeStack(e.getType()))
 			{
 				codeGen.addInstruction(STO, "0", name);
+				//Asignar el valor en la tabla de símbolos.
 				return true;
 			}
 			return false;
@@ -920,11 +921,12 @@ public class Grammar implements OperationResult, CodeInstruction
 				}
 				else
 				{
+					SymbolTableElement eAux = null;
 					for(int i = 0; i < dimInUseSize; i++)
 					{
 						String dimInUseAux = dimInUse.get(i);
-						SymbolTableElement eAux;
-						int dimAux;
+						
+						//int dimAux;
 						if(!Numeric.isNumeric(dimInUseAux))
 						{
 							eAux = getElementForCall(dimInUseAux);
@@ -938,7 +940,8 @@ public class Grammar implements OperationResult, CodeInstruction
 							}
 							dimInUseAux = eAux.getValue();
 						}
-						try
+						//For variables declared, but don't know it's value.
+						/*try
 						{
 							dimAux = Integer.parseInt(dimInUseAux);
 							if(dimAux < dimElement.get(i) || dimAux > dimElement.get(i + 1))
@@ -956,12 +959,14 @@ public class Grammar implements OperationResult, CodeInstruction
 						{
 							parser.addSemanticError(Error.semanticFreeError(parser
 									.getLineOfCode(), "Can't get reference from '"
-									+ dimInUseAux + "' for dimensioned variable '"
-									+ e.getName() + "'"));
+									+ eAux.getName() + "' for dimensioned variable '"
+									+ e.getName() + "' " + eAux.getName() + " could not be "
+									+ "initialized."));
 							return false;
-						}
+						}*/
 					}
 				}
+				codeGen.addBufferToMainInstructionSet();
 				return true;
 			}
 		}
@@ -985,6 +990,9 @@ public class Grammar implements OperationResult, CodeInstruction
 								"' at line: " + parser.getLineOfCode() + " is not dimensioned.");
 						return false;
 					}
+					codeGen.setActiveInstructionBuffer(true);
+					codeGen.addInstruction(LOD, id, "0");
+					//codeGen.setActiveInstructionBuffer(false);
 				}
 				else return false;
 				return grammarUdim(e);
@@ -1444,22 +1452,35 @@ public class Grammar implements OperationResult, CodeInstruction
 		nextToken();
 		if(!grammarExpr()) return false;
 		checkTypeFromTypeStack(DataType.LOGICO);
+		String tagJumpCond = codeGen.getNextTag();
+		codeGen.addInstruction(JMC, "F", tagJumpCond);
 		
 		nextToken();
 		if(!checkTerminalValue(TERMINAL_RIGHT_PAR, PRIORITY_HIGH, G_SI)) return false;
 		
 		nextToken();
 		grammarStatement();
+		
+		String jumpAfterIf = codeGen.getNextTag();
+		codeGen.addInstruction(JMP, "0", jumpAfterIf);
+		int lineJumpCond = codeGen.getInstructionNumber();
+		codeGen.addTagToSymbolTable(tagJumpCond, lineJumpCond);
+		
 		if(!checkTerminalValue(TERMINAL_FIN, PRIORITY_LOW, G_SI))
 		{
 			if(!checkTerminalValue(TERMINAL_SINO, PRIORITY_LOW, G_SI))
-				grammarStatement();
+			{
+				//grammarStatement();
+				parser.addParsingError("Waiting for terminal fin in grammar 'Si'");
+				return false;
+			}
 			else
 			{
 				nextToken();
 				grammarStatement();
 			}
 		}
+		
 		if(!checkTerminalValue(TERMINAL_FIN, PRIORITY_HIGH, G_SI)) return false;
 		
 		nextToken();
