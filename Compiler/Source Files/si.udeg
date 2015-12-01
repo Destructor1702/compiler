@@ -1,0 +1,16 @@
+//Statement si.
+//Francisco Natanael.
+programa TeTruena
+	entero x;
+	constante entero MAX := 5;
+		principal
+		inicio
+			despliega("Ingresa el valor de x: " + "\n");
+			lee(x);
+			si(x > MAX)
+				despliega("x: " + x +  " es mayor que " + MAX + "\n");
+			sino
+				despliega("x: " + x +  " es menor que " + MAX + "\n");
+			fin de si;
+		fin de principal;
+	fin de TeTruena.

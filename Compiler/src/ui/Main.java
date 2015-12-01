@@ -13,7 +13,7 @@ public class Main
 	{
 		//if(args.length > 1)
 		{
-			String file = "Source Files/LeeDim.udeg";
+			String file = "Source Files/si.udeg";
 			if(file.endsWith(".udeg"))
 			{
 				Core core = new Core(file);

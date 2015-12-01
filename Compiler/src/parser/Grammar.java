@@ -156,15 +156,28 @@ public class Grammar implements OperationResult, CodeInstruction
 		prepareElement();
 		
 		nextToken();
+		String tagJumpStartDeclaration = "";
+		String tagJumpEndDeclaration = "";
+		int lineJumpStartDeclaration;
+		
+		//Flag that turns on whenever a declaration of a variable, type or constant
+		//is done.
+		boolean hasDeclaration = false;
 		if(!checkTerminalValue(TERMINAL_PRINCIPAL, PRIORITY_LOW, G_PROGAMA))
 		{
 			if(!checkTerminalValue(TERMINAL_INICIO, PRIORITY_LOW, G_PROGAMA))
 			{
+				
 				//Controls the cycle to declare variables, constants and types.
 				boolean stillDeclaring = true;
-				//Flag that turns on whenever a declaration of a variable, type or constant
-				//is done.
-				boolean hasDeclaration = false;
+				
+				if(!checkTerminalValue(TERMINAL_INICIO, PRIORITY_LOW, G_PROGAMA) && 
+						!checkTerminalValue(TERMINAL_PRINCIPAL, PRIORITY_LOW, G_PROGAMA))
+				{
+					tagJumpStartDeclaration = codeGen.getNextTag();
+					lineJumpStartDeclaration = codeGen.getInstructionNumber();
+					codeGen.addTagToSymbolTable(tagJumpStartDeclaration, lineJumpStartDeclaration);
+				}
 				while(!checkTerminalValue(TERMINAL_INICIO, PRIORITY_LOW, G_PROGAMA) && 
 						!checkTerminalValue(TERMINAL_PRINCIPAL, PRIORITY_LOW, G_PROGAMA) && 
 						stillDeclaring)
@@ -185,7 +198,13 @@ public class Grammar implements OperationResult, CodeInstruction
 						hasDeclaration = true;
 					}
 					//Triggers the feed of another token if a delaration was done.
-					if(hasDeclaration)nextToken();
+					if(hasDeclaration)
+						nextToken();
+				}
+				if(hasDeclaration)
+				{
+					tagJumpEndDeclaration = codeGen.getNextTag();
+					codeGen.addInstruction(JMP, "0", tagJumpEndDeclaration);
 				}
 			}
 			if(checkTerminalValue(TERMINAL_INICIO, PRIORITY_LOW, G_PROGAMA))
@@ -197,6 +216,13 @@ public class Grammar implements OperationResult, CodeInstruction
 		}
 		checkTerminalValue(TERMINAL_PRINCIPAL, PRIORITY_HIGH, G_PROGAMA);
 		codeGen.setMainTag();
+		
+		//Set jump for declaration of variables.
+		if(hasDeclaration)
+		{
+			codeGen.addInstruction(JMP, "0", tagJumpStartDeclaration);
+			codeGen.addTagToSymbolTable(tagJumpEndDeclaration, codeGen.getInstructionNumber());
+		}
 		
 		nextToken();
 		if(!checkTerminalValue(TERMINAL_FIN, PRIORITY_LOW, G_PROGAMA)) grammarBlock();
@@ -313,6 +339,8 @@ public class Grammar implements OperationResult, CodeInstruction
 					else
 						eClass = SymbolTableElement.CLASS_CONSTANTE;
 					prepareElement();
+					codeGen.addInstruction(LIT, eValue, "0");
+					codeGen.addInstruction(STO, "0", eName);
 					if(!checkTerminalValue(TERMINAL_SEMICOLON, PRIORITY_LOW, G_CONSTANTES))
 					{
 						if(!checkTerminalValue(TERMINAL_COMA, PRIORITY_HIGH, G_CONSTANTES)) 
@@ -1485,13 +1513,16 @@ public class Grammar implements OperationResult, CodeInstruction
 			if(!checkTerminalValue(TERMINAL_SINO, PRIORITY_LOW, G_SI))
 			{
 				//grammarStatement();
-				parser.addParsingError("Waiting for terminal fin in grammar 'Si'");
+				parser.addParsingError(Error.createParsingFreeError(parser.getLineOfCode(),
+						"Waiting for terminal fin in grammar 'Si'"));
 				return false;
 			}
 			else
 			{
 				nextToken();
 				grammarStatement();
+				int lineJumpAfterIf = codeGen.getInstructionNumber();
+				codeGen.addTagToSymbolTable(jumpAfterIf, lineJumpAfterIf);
 			}
 		}
 		
