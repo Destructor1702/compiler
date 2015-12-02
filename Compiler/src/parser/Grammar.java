@@ -49,6 +49,8 @@ public class Grammar implements OperationResult, CodeInstruction
 	
 	private final static String FUNCTION = "F";
 	private final static String PROCEDURE = "P";
+	private int lineForSymbolTableStartFuncProc;
+	
 	private String functionProcedure = "";
 	private boolean hasReturn;
 	private String callingFP;
@@ -558,6 +560,9 @@ public class Grammar implements OperationResult, CodeInstruction
 			nextToken();
 			if(!checkTerminalValue(TERMINAL_LEFT_PAR, PRIORITY_HIGH, G_FUNCION)) return false;
 			
+			//Add the tag of the function to the symbol table for the generated code.
+			lineForSymbolTableStartFuncProc = codeGen.getInstructionNumber();
+			
 			nextToken();
 			if(!checkTerminalValue(TERMINAL_RIGHT_PAR, PRIORITY_LOW, G_FUNCION))
 			{
@@ -662,6 +667,9 @@ public class Grammar implements OperationResult, CodeInstruction
 		nextToken();
 		if(!checkTerminalValue(TERMINAL_LEFT_PAR, PRIORITY_HIGH, G_PROCEDIMIENTO)) return false;
 		
+		//Add the tag of the procedure to the symbol table for the generated code.
+		lineForSymbolTableStartFuncProc = codeGen.getInstructionNumber();
+		
 		nextToken();
 		if(!checkTerminalValue(TERMINAL_RIGHT_PAR, PRIORITY_LOW, G_PROCEDIMIENTO))
 		{
@@ -710,6 +718,9 @@ public class Grammar implements OperationResult, CodeInstruction
 		
 		localFunctionName = "";
 		isLocalDeclaration = false;
+		
+		//Exit for procedures.
+		codeGen.addInstruction(OPR, "0", RETURN);
 		return true;
 	}
 	
@@ -730,6 +741,7 @@ public class Grammar implements OperationResult, CodeInstruction
 			{
 				if(grammarCommand())
 				{
+					typeStack.clear();
 					nextToken();
 					if(checkTerminalValue(TERMINAL_SEMICOLON, PRIORITY_LOW, G_STATEMENT))
 						nextToken();
@@ -1055,7 +1067,7 @@ public class Grammar implements OperationResult, CodeInstruction
 						return false;
 					}
 					dimInUse.add(e.getName());
-					codeGen.addInstruction(LOD, id, "0");
+					codeGen.addInstruction(LOD, e.getName(), "0");
 					return true;
 				}
 				return false;
@@ -1360,6 +1372,11 @@ public class Grammar implements OperationResult, CodeInstruction
 		
 		nextToken();
 		ArrayList<String> useOfParams = new ArrayList<String>();
+		
+		//Set the tag for the return statement after calling a function or procedure.
+		String tagReturn = codeGen.getNextTag();
+		codeGen.addInstruction(LOD, tagReturn, "0");
+		
 		if(!checkTerminalValue(TERMINAL_RIGHT_PAR, PRIORITY_LOW, G_L_FUNC))
 		{
 			if(!grammarUparam(useOfParams)) return false;
@@ -1378,14 +1395,26 @@ public class Grammar implements OperationResult, CodeInstruction
 			}
 		}
 		SymbolTableElement e;
-		if(!auxFunctionParamsName.equals("")) e = getElementForCall(name + auxFunctionParamsName);
-		else e = getElementForCall(name);
+		if(!auxFunctionParamsName.equals(""))
+			name += auxFunctionParamsName;
+		e = getElementForCall(name);
 		if(e == null) return false;
+
+		codeGen.addInstruction(CAL, name, "0");
+		
+		//Set the value for the return tag.
+		codeGen.addTagToSymbolTable(tagReturn, codeGen.getInstructionNumber());
+		
 		int elementClass = e.getElementClass();
 		switch(elementClass)
 		{
-			case SymbolTableElement.CLASS_FUNCION: callingFP = FUNCTION; break;
-			case SymbolTableElement.CLASS_PROCEDIMIENTO: callingFP = PROCEDURE; break;
+			case SymbolTableElement.CLASS_FUNCION: 
+				callingFP = FUNCTION;
+				codeGen.addInstruction(LOD, name, "0");
+				break;
+			case SymbolTableElement.CLASS_PROCEDIMIENTO: 
+				callingFP = PROCEDURE;
+				break;
 			default: callingFP = "";
 		}
 		if(rightPartOfAsignation)
@@ -1397,6 +1426,7 @@ public class Grammar implements OperationResult, CodeInstruction
 				return false;
 			}
 		}
+		typeStack.push(e.getType());
 		return true;
 	}
 	
@@ -1415,8 +1445,8 @@ public class Grammar implements OperationResult, CodeInstruction
 				pushToken();
 				for(int i = 0; i < params; i++)
 					useOfParams.add(typeStack.pop());
-				for(int i = params - 1; i >= 0; i--)
-					typeStack.push(useOfParams.get(i));
+				/*for(int i = params - 1; i >= 0; i--)
+					typeStack.push(useOfParams.get(i));*/
 				return true;
 			}
 		}
@@ -1474,7 +1504,10 @@ public class Grammar implements OperationResult, CodeInstruction
 		}
 		if(hasExpression)
 			if(functionProcedure.equals(FUNCTION))
+			{
 				checkTypeFromTypeStack(parser.getElementByName(localFunctionName).getType());
+				codeGen.addInstruction(STO, "0", localFunctionName);
+			}
 			else
 				parser.addSemanticError(Error.semanticFreeError(parser.getLineOfCode(), 
 						"<regresa> statement inside a procedure can't contain an expression." ));
@@ -1483,6 +1516,7 @@ public class Grammar implements OperationResult, CodeInstruction
 				parser.addSemanticError(Error.semanticFreeError(parser.getLineOfCode(), 
 						"<regresa> statement inside a function must contain an expression." ));
 				
+		codeGen.addInstruction(OPR, "0", RETURN);
 		return true;
 	}
 	
@@ -1854,7 +1888,7 @@ public class Grammar implements OperationResult, CodeInstruction
 						prepareParameter(parameters.get(i));
 				}
 				addElementToSymbolTable(eName, eClass, eType, false, new ArrayList<Integer>(), 
-						"", eLine);
+						"", eLine, lineForSymbolTableStartFuncProc);
 				localFunctionName = eName;
 
 				clearParameters();
@@ -1871,8 +1905,12 @@ public class Grammar implements OperationResult, CodeInstruction
 	 */
 	private void prepareParameter(Parameter p)
 	{
-		addElementToSymbolTable(p.getId() + "$" + eName, SymbolTableElement.CLASS_PARAMETRO, 
+		String parameterName = p.getId() + "$" + eName;
+		addElementToSymbolTable(parameterName, SymbolTableElement.CLASS_PARAMETRO, 
 				p.getDataType(), false, new ArrayList<Integer>(), "", p.getLineOfCode());
+		
+		//Add the parameter to the generated code.
+		codeGen.addInstruction(STO, "0", parameterName);
 	}
 	
 	/**
@@ -1884,6 +1922,19 @@ public class Grammar implements OperationResult, CodeInstruction
 	{
 		parser.addElementToSymbolTable(new SymbolTableElement(eName, eClass, eType, 
 				eDimensioned, new ArrayList<Integer>(eDim), eValue, eLine));
+		eDim.clear();
+	}
+	
+	/**
+	 * Adds a new element to the symbol table with the stored information inside the
+	 * element's buffers.
+	 */
+	private void addElementToSymbolTable(String eName, int eClass, String eType, 
+			boolean eDimensioned, ArrayList<Integer> eDim, String eValue, int eLine, 
+			int lineStartFuncProc)
+	{
+		parser.addElementToSymbolTable(new SymbolTableElement(eName, eClass, eType, 
+				eDimensioned, new ArrayList<Integer>(eDim), eValue, eLine, lineStartFuncProc));
 		eDim.clear();
 	}
 	

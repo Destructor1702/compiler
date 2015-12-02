@@ -1,0 +1,32 @@
+//Functions.
+//Francisco Natanael.
+programa Function
+	entero x;
+	constante entero MAX := 5;
+
+	//Functions.
+	inicio
+		declara
+		//Compare.
+		funcion logico Compare(entero x)
+		inicio
+			regresa x > MAX;
+		fin de Compare;
+
+		procedimiento Print(entero x)
+		inicio
+			despliega("Adentro de procedimiento: " + x + "\n");
+		fin de Print;
+
+		principal
+		inicio
+			despliega("Ingresa el valor de x: " + "\n");
+			lee(x);
+			si(Compare(x))
+				despliega("x: " + x +  " es mayor que " + MAX + "\n");
+			sino
+				despliega("x: " + x +  " es menor que " + MAX + "\n");
+			fin de si;
+			Print(x);
+		fin de principal;
+	fin de Function.

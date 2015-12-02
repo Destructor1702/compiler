@@ -39,13 +39,18 @@ public class SymbolTableElement
 	private String value;
 	private int line;
 	
+	//Extra field for functions and procedures.
+	private int lineStartFuncProc;
+	
 	/**
-	 * Constructor.
+	 * Main constructor.
 	 * @param name
 	 * @param elementClass
 	 * @param type
-	 * @param isDimensioned
+	 * @param dimensioned
+	 * @param dim
 	 * @param value
+	 * @param line
 	 */
 	public SymbolTableElement(String name, int elementClass, String type, boolean dimensioned, 
 			ArrayList<Integer> dim, String value, int line)
@@ -60,6 +65,30 @@ public class SymbolTableElement
 	}
 
 	/**
+	 * Constructor for functions and procedures.
+	 * @param name
+	 * @param elementClass
+	 * @param type
+	 * @param dimensioned
+	 * @param dim
+	 * @param value
+	 * @param line
+	 * @param lineStartFuncProc
+	 */
+	public SymbolTableElement(String name, int elementClass, String type, boolean dimensioned, 
+			ArrayList<Integer> dim, String value, int line, int lineStartFuncProc)
+	{
+		this.name = name;
+		this.elementClass = elementClass;
+		this.type = type;
+		this.dimensioned = dimensioned;
+		this.dim = dim;
+		this.value = value;
+		this.line = line;
+		this.lineStartFuncProc = lineStartFuncProc;
+	}
+	
+	/**
 	 * Getters.
 	 */
 	public String getName(){return name;}
@@ -69,6 +98,7 @@ public class SymbolTableElement
 	public ArrayList<Integer> getDim(){return dim;}
 	public String getValue(){return value;}
 	public int getLine(){return line;}
+	public int getLineStartFuncProc(){return lineStartFuncProc;}
 	
 	/**
 	 * Setters
@@ -106,6 +136,11 @@ public class SymbolTableElement
 	public void setLine(int line)
 	{
 		this.line = line;
+	}
+	
+	public void setLineStartFuncProc(int lineStartFuncProc)
+	{
+		this.lineStartFuncProc = lineStartFuncProc;
 	}
 	
 	/**

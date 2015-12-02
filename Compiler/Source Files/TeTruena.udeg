@@ -6,7 +6,7 @@ programa TeTruena
 
 	tipo entero Arre arreglo(1 hasta MAX);
 
-	entero i, n;
+	entero i, n, j;
 	Arre vector;
 	decimal r, s;
 	alfanumerico alfa, beta;
