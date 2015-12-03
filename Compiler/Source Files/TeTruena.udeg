@@ -6,7 +6,7 @@ programa TeTruena
 
 	tipo entero Arre arreglo(1 hasta MAX);
 
-	entero i, n, j;
+	entero i, n, j, tmp;
 	Arre vector;
 	decimal r, s;
 	alfanumerico alfa, beta;
@@ -39,7 +39,7 @@ programa TeTruena
 		fin de LeeVec;
 
 		procedimiento Burbuja(entero k)
-			entero tmp;
+			//entero tmp;
 		inicio
 			ciclo i en 1 hasta ( k - 1 )
 				ciclo j en (i + 1 ) hasta k

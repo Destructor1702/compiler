@@ -1884,7 +1884,10 @@ public class Grammar implements OperationResult, CodeInstruction
 					int paramSize = parameters.size();
 					for(int i = 0; i < paramSize; i++)
 						eName += "$" + parameters.get(i).getDataType();
-					for(int i = 0; i < paramSize; i++)
+					
+					//Send the parameters in reverse order according to code generator
+					//settings.
+					for(int i = paramSize - 1; i >= 0; i--)
 						prepareParameter(parameters.get(i));
 				}
 				addElementToSymbolTable(eName, eClass, eType, false, new ArrayList<Integer>(), 

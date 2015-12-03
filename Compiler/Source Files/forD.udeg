@@ -1,0 +1,14 @@
+//Example for nested for.
+//Francisco Natanael.
+programa For
+	entero i, j, res;
+	principal
+	inicio
+		ciclo i en 1 hasta 10
+				ciclo j en 1 hasta 10
+					res := i + j;
+					despliega("Suma de " + i + " y " + j + ": " + res + "\n");
+				fin de ciclo;
+			fin de ciclo;
+	fin de principal;
+fin de For.
