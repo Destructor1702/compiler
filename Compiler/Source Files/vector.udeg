@@ -1,0 +1,30 @@
+programa Vector
+	tipo entero Arre arreglo(1 hasta 10);
+	Arre vector;
+	entero i, j;
+	inicio 
+		declara
+		procedimiento Burbuja(entero k)
+			entero tmp;
+		inicio
+			ciclo i en 1 hasta ( k - 1 )
+				ciclo j en (i + 1 ) hasta k
+					si (vector[i] > vector[j])
+						tmp := vector[ i ];
+						vector[i] := vector[j];
+						vector[j] := tmp;
+					fin de si;
+				fin de ciclo;
+			fin de ciclo;
+		fin de Burbuja;
+	principal
+	inicio
+		vector[1] := 20;
+		vector[2] := 10;
+		despliega("Vector[1]: " + vector[1] + "\n");
+		despliega("Vector[2]: " + vector[2] + "\n");
+		Burbuja(2);
+		despliega("Vector[1]: " + vector[1] + "\n");
+		despliega("Vector[2]: " + vector[2] + "\n");
+	fin de principal;
+fin de Vector.

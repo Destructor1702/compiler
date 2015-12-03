@@ -815,7 +815,7 @@ public class Grammar implements OperationResult, CodeInstruction
 			rightPartOfAsignation = false;
 			if(checkTypeFromTypeStack(e.getType()))
 			{
-				codeGen.addInstruction(STO, "0", name);
+				codeGen.addInstruction(STO, "0", e.getName());
 				//Asignar el valor en la tabla de símbolos.
 				return true;
 			}
@@ -1204,6 +1204,8 @@ public class Grammar implements OperationResult, CodeInstruction
 	
 	private boolean grammarOpSR()
 	{
+		int numOperands = 1;
+
 		String op = "";
 		while(true)
 		{
@@ -1211,12 +1213,16 @@ public class Grammar implements OperationResult, CodeInstruction
 			nextToken();
 			if(checkTerminalValue(TERMINAL_OP_ADD, PRIORITY_LOW, G_OP_SR))
 			{
+				if(numOperands == 2)
+				{
+					codeGen.addInstruction(OPR, "0", ADD);
+					numOperands = 0;
+				}
 				if(!isInsideDespliega)
 				{
-					//codeGen.addInstruction(OPR, "0", PRINT);
 					op = TERMINAL_OP_ADD;
 					nextToken();
-					
+					numOperands++;
 				}
 				else
 				{
@@ -1238,7 +1244,6 @@ public class Grammar implements OperationResult, CodeInstruction
 					if(op.equals(TERMINAL_OP_ADD))codeGen.addInstruction(OPR, "0", ADD);
 					else if(op.equals(TERMINAL_OP_SUB)) codeGen.addInstruction(OPR, "0", SUB);
 				}
-				
 				return true;
 			}
 		}
@@ -1559,6 +1564,9 @@ public class Grammar implements OperationResult, CodeInstruction
 				codeGen.addTagToSymbolTable(jumpAfterIf, lineJumpAfterIf);
 			}
 		}
+		else
+			//Jump for if without else.
+			codeGen.addTagToSymbolTable(jumpAfterIf, lineJumpCond);
 		
 		if(!checkTerminalValue(TERMINAL_FIN, PRIORITY_HIGH, G_SI)) return false;
 		

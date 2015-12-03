@@ -1,0 +1,14 @@
+//Francisco Natanael.
+programa TeTruena
+	alfanumerico cadena;
+	inicio
+		declara
+		funcion entero Concat(entero a, b)
+		inicio
+			regresa a + 1 + b;
+		fin de Concat;
+		principal
+		inicio
+			despliega("Cadena: " + Concat(1, 2) +  "\n");
+		fin de principal;
+	fin de TeTruena.
