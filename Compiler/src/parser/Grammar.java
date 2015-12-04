@@ -1235,7 +1235,7 @@ public class Grammar implements OperationResult, CodeInstruction
 				if(numOperands == 2)
 				{
 					codeGen.addInstruction(OPR, "0", ADD);
-					numOperands = 0;
+					numOperands = 1;
 				}
 				if(!isInsideDespliega)
 				{

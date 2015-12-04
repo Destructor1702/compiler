@@ -5,10 +5,10 @@ programa TeTruena
 		declara
 		funcion entero Concat(entero a, b)
 		inicio
-			regresa a + 1 + b;
+			regresa a + 1 + b + 1 + 1+ 2 +1;
 		fin de Concat;
 		principal
 		inicio
-			despliega("Cadena: " + Concat(1, 2) +  "\n");
+			despliega("Cadena: " + Concat(1, 1) +  "\n");
 		fin de principal;
 	fin de TeTruena.
