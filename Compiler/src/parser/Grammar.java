@@ -70,6 +70,7 @@ public class Grammar implements OperationResult, CodeInstruction
 	
 	private boolean isInsideDespliega;
 	private boolean isDespliegaNewLine;
+	private int finalNewLines;
 	
 	/**
 	 * Index for grammars.
@@ -1086,12 +1087,30 @@ public class Grammar implements OperationResult, CodeInstruction
 					case Token.CONSTANT_ALFANUM:
 						if(isInsideDespliega)
 						{
-							if(value.equals("\"\\n\"")) 
+							value = value.substring(1, value.length() - 1);
+							if(value.equals("\\n")) 
 							{
 								isDespliegaNewLine = true;
 								codeGen.addInstruction(LIT, " ", "0" );
 							}
-							else codeGen.addInstruction(LIT, value, "0" );
+							else
+							{
+								while(value.startsWith("\\n"))
+								{
+									codeGen.addInstruction(LIT, " ", "0" );
+									codeGen.addInstruction(OPR, "0", PRINTLN);
+									value = value.substring(2);
+								}
+								finalNewLines = 0;
+								while(value.endsWith("\\n"))
+								{
+									finalNewLines++;
+									value = value.substring(0, value.length() - 2);
+								}
+								
+								value = "\"" + value + "\"";
+								codeGen.addInstruction(LIT, value, "0" );
+							}
 						}
 						else 
 							codeGen.addInstruction(LIT, value, "0" );
@@ -1479,7 +1498,15 @@ public class Grammar implements OperationResult, CodeInstruction
 						codeGen.addInstruction(OPR, "0", PRINTLN);
 						isDespliegaNewLine = false;
 					}
-					else codeGen.addInstruction(OPR, "0", PRINT);
+					else{
+						codeGen.addInstruction(OPR, "0", PRINT);
+						for(int i = 0; i < finalNewLines; i++)
+						{
+							codeGen.addInstruction(LIT, " ", "0" );
+							codeGen.addInstruction(OPR, "0", PRINTLN);
+						}
+						finalNewLines = 0;
+					}
 						
 					return true;
 				}
