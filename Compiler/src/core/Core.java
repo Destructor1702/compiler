@@ -98,7 +98,7 @@ public class Core
 					print(codeGenErrors.get(i));
 				readyToGenerate = false;
 			}
-			print(symTable.getPrintableTable());
+			//print(symTable.getPrintableTable());
 			if(readyToGenerate)
 			{
 				if(!codeGen.generateFile())

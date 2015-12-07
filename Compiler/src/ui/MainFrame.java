@@ -51,6 +51,8 @@ public class MainFrame extends Frame implements ActionListener, WindowListener
 	//private Scrollbar scroll;
 	private int line;
 	
+	private File f = null;
+	
 	/**
 	 * Initializes the frame.
 	 */
@@ -118,41 +120,50 @@ public class MainFrame extends Frame implements ActionListener, WindowListener
 			FileDialog fileDialog = new FileDialog(this);
 			fileDialog.setVisible(true);
 			fileName = fileDialog.getFile();
-			if(fileName != null)
+			if(fileName.endsWith(".udeg"))
 			{
-				btnCompile.setEnabled(true);
-				txtStatus.append("Selected file: " + fileName + "\n\n");
-				try
+				if(fileName != null)
 				{
-					File f = new File(fileName);
-					FileReader r = new FileReader(f);
-					BufferedReader br = new BufferedReader(r);
-					char[] text = new char[Integer.parseInt(
-							String.valueOf(f.length()))];
-					br.read(text, 0, Integer.parseInt(
-							String.valueOf(f.length())));
-					txtEditor.append(String.valueOf(text));
-					br.close();
+					btnCompile.setEnabled(true);
+					txtStatus.append("Selected file: " + fileName + "\n\n");
+					try
+					{
+						f = new File(fileDialog.getDirectory(), fileName);
+						FileReader r = new FileReader(f);
+						BufferedReader br = new BufferedReader(r);
+						char[] text = new char[Integer.parseInt(
+								String.valueOf(f.length()))];
+						br.read(text, 0, Integer.parseInt(
+								String.valueOf(f.length())));
+						txtEditor.append(String.valueOf(text));
+						br.close();
+						txtStatus.setText("");
+					}
+					catch (FileNotFoundException e1)
+					{
+						e1.printStackTrace();
+					}
+					//txtEditor.append()
+					catch (NumberFormatException e1)
+					{
+						e1.printStackTrace();
+					}
+					catch (IOException e1)
+					{
+						e1.printStackTrace();
+					}
 				}
-				catch (FileNotFoundException e1)
-				{
-					e1.printStackTrace();
-				}
-				//txtEditor.append()
-				catch (NumberFormatException e1)
-				{
-					e1.printStackTrace();
-				}
-				catch (IOException e1)
-				{
-					e1.printStackTrace();
-				}
+				else
+					txtStatus.append("File is NULL, can't continue.");
 			}
+			else
+				txtStatus.append("Only files with extension \".udeg\" can be compiled.\n"
+						+ "Select another file.\n");
 		}
 		if(action.equals(TAG_COMPILE))
 		{
 			txtStatus.append("Compiling...\n\n");
-			Core core = new Core(txtStatus, fileName);
+			Core core = new Core(txtStatus, f.getAbsolutePath());
 			core.compile();
 		}
 		if(action.equals(TAG_EXIT))
